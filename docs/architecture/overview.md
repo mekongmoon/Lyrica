@@ -107,7 +107,13 @@ sequenceDiagram
     - Seeds the proxy pool from `PROXY_URL`.
 
 ### 2. Async-to-Sync Bridge (`run_async()` in `src/async_bridge.py`)
-Flask routes run synchronously in worker threads, while provider integrations and metadata extractors use `httpx.AsyncClient` with `asyncio.gather` for non-blocking I/O. The `run_async()` bridge manages event loops cleanly with `nest_asyncio` and timeouts.
+Flask routes run synchronously in worker threads, while provider integrations and metadata extractors use `httpx.AsyncClient` with `asyncio.gather` for non-blocking I/O. `run_async()` connects the two:
+
+- Each worker thread keeps **one long-lived event loop**, reused across requests so connection pools stay warm.
+- If the caller already has a **running loop**, the coroutine runs on a short-lived helper thread with its own loop. Loops are never nested, so no `nest_asyncio`-style patching is needed.
+- A timeout raises `TimeoutError`, which routes turn into HTTP 504.
+
+This pairs with Gunicorn's `gthread` workers (see `gunicorn_production.py`). Flask's native `async def` views were considered instead: they start a fresh event loop per request, which would discard the per-thread connection reuse, so the bridge is kept.
 
 ### 3. Shared HTTP Connection Pool (`src/sources/base_fetcher.py`)
 All fetchers inherit from `BaseFetcher` and utilize a centralized, thread-safe `httpx.AsyncClient` with connection pooling (`max_connections=200`, `max_keepalive_connections=50`). This prevents socket exhaustion during high concurrent request bursts.
