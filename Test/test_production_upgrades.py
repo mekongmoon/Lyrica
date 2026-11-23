@@ -10,6 +10,8 @@ import sys
 import os
 import asyncio
 
+import pytest
+
 # Add project root to sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -78,6 +80,7 @@ def test_cache_multi_tier():
     print("  [PASS] Cache clear works")
 
 
+@pytest.mark.integration
 async def test_metadata_async():
     print("\nTesting Metadata Extractor (Async httpx)...")
     res = await get_song_metadata_async("Queen", "Bohemian Rhapsody")
@@ -89,6 +92,7 @@ async def test_metadata_async():
         print(f"  [WARN] Metadata search returned: {res.get('error')}")
 
 
+@pytest.mark.integration
 def test_trending_httpx():
     print("\nTesting Trending Analytics (httpx)...")
     engine = TrendingAnalyticsEngine(cache_ttl_hours=1)
@@ -98,6 +102,7 @@ def test_trending_httpx():
         print(f"  [PASS] Top song: #{songs[0].rank} {songs[0].title} by {songs[0].artist}")
 
 
+@pytest.mark.integration  # /trending/ fetches live charts
 def test_flask_routes():
     print("\nTesting Flask API endpoints via test_client...")
     client = app.test_client()

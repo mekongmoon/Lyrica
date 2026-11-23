@@ -11,6 +11,9 @@ requires-python = ">=3.11"
 [tool.pytest.ini_options]
 testpaths = ["Test"]
 asyncio_mode = "auto"
+markers = [
+    "integration: hits live upstream services; skipped unless LYRICA_RUN_INTEGRATION=1",
+]
 filterwarnings = [
     "ignore::DeprecationWarning:flask.*",
 ]

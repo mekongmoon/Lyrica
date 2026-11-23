@@ -21,12 +21,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.sources.genius_fetcher import GeniusFetcher, _parse_lyrics_page, _extract_container_contents
 
-# Live integration tests are opt-in: upstream outages and rate limits must not
-# make the default test suite (or CI) red.
-_LIVE = pytest.mark.skipif(
-    os.getenv("LYRICA_RUN_INTEGRATION", "0") != "1",
-    reason="live Genius integration test — set LYRICA_RUN_INTEGRATION=1 to enable",
-)
+# Live integration tests are opt-in (see conftest.py).
+_LIVE = pytest.mark.integration
 
 
 @_LIVE
