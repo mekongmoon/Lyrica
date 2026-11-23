@@ -9,11 +9,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.sources.apple_music_fetcher import (  # noqa: E402
-    _extract_ttml_from_response,
-    _parse_timecode,
-    _TTMLConverter,
-)
+from src.sources.apple_music.api import _extract_ttml_from_response  # noqa: E402
+from src.sources.apple_music.ttml import _parse_timecode, _TTMLConverter  # noqa: E402
 
 # Two lines. Line 1 is three syllable spans forming two words ("Hel"+"lo",
 # then "world,"); line 2 uses an hh:mm:ss timecode.
