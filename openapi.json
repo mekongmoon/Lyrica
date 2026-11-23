@@ -20,28 +20,28 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "api": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "version": {
-                      "type": "string"
-                    },
                     "timestamp": {
-                      "type": "string"
-                    },
-                    "description": {
                       "type": "string"
                     },
                     "endpoints": {
                       "type": "string"
                     },
+                    "version": {
+                      "type": "string"
+                    },
                     "parameters": {
                       "type": "string"
                     },
+                    "description": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
                     "fetchers": {
+                      "type": "string"
+                    },
+                    "api": {
                       "type": "string"
                     }
                   }
@@ -59,31 +59,7 @@
         "operationId": "lyrics_get",
         "parameters": [
           {
-            "name": "song",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sequence",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "language",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "timestamps",
             "in": "query",
             "required": false,
             "schema": {
@@ -99,63 +75,7 @@
             }
           },
           {
-            "name": "pass",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "mood",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "metadata",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "artist",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fast",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "word",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "romanize",
             "in": "query",
             "required": false,
             "schema": {
@@ -171,7 +91,87 @@
             }
           },
           {
+            "name": "artist",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pass",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "metadata",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fast",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timestamps",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "song",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "romanize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sequence",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "translate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "word",
             "in": "query",
             "required": false,
             "schema": {
@@ -208,7 +208,7 @@
         "operationId": "metadata_get",
         "parameters": [
           {
-            "name": "song",
+            "name": "artist",
             "in": "query",
             "required": false,
             "schema": {
@@ -216,7 +216,7 @@
             }
           },
           {
-            "name": "artist",
+            "name": "song",
             "in": "query",
             "required": false,
             "schema": {
@@ -253,7 +253,7 @@
         "operationId": "trending_get",
         "parameters": [
           {
-            "name": "country",
+            "name": "countries",
             "in": "query",
             "required": false,
             "schema": {
@@ -261,7 +261,7 @@
             }
           },
           {
-            "name": "countries",
+            "name": "country",
             "in": "query",
             "required": false,
             "schema": {
@@ -280,10 +280,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "data": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "data": {
                       "type": "string"
                     }
                   }
@@ -301,7 +301,7 @@
         "operationId": "top_queries_get",
         "parameters": [
           {
-            "name": "country",
+            "name": "days",
             "in": "query",
             "required": false,
             "schema": {
@@ -309,7 +309,7 @@
             }
           },
           {
-            "name": "days",
+            "name": "country",
             "in": "query",
             "required": false,
             "schema": {
@@ -328,10 +328,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "data": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "data": {
                       "type": "string"
                     }
                   }
@@ -359,10 +359,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "data": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "data": {
                       "type": "string"
                     }
                   }
@@ -399,10 +399,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "data": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "data": {
                       "type": "string"
                     }
                   }
@@ -439,10 +439,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "data": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "data": {
                       "type": "string"
                     }
                   }
@@ -476,10 +476,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "results": {
                       "type": "string"
                     },
-                    "results": {
+                    "error": {
                       "type": "string"
                     },
                     "status": {
@@ -519,10 +519,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "data": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "data": {
                       "type": "string"
                     }
                   }
@@ -556,22 +556,22 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "total": {
-                      "type": "string"
-                    },
-                    "status": {
+                    "query": {
                       "type": "string"
                     },
                     "limit": {
                       "type": "string"
                     },
-                    "query": {
+                    "total": {
                       "type": "string"
                     },
                     "results": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "status": {
                       "type": "string"
                     }
                   }
@@ -664,10 +664,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "details": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "details": {
                       "type": "string"
                     }
                   }
@@ -722,16 +722,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string"
-                    },
                     "pool_size": {
                       "type": "string"
                     },
-                    "message": {
+                    "error": {
                       "type": "string"
                     },
                     "status": {
+                      "type": "string"
+                    },
+                    "message": {
                       "type": "string"
                     }
                   }
@@ -765,16 +765,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string"
-                    },
                     "pool_size": {
                       "type": "string"
                     },
-                    "message": {
+                    "error": {
                       "type": "string"
                     },
                     "status": {
+                      "type": "string"
+                    },
+                    "message": {
                       "type": "string"
                     }
                   }
@@ -806,16 +806,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string"
-                    },
                     "pool_size": {
                       "type": "string"
                     },
-                    "message": {
+                    "error": {
                       "type": "string"
                     },
                     "status": {
+                      "type": "string"
+                    },
+                    "message": {
                       "type": "string"
                     }
                   }
@@ -843,10 +843,10 @@
                     "pool_size": {
                       "type": "string"
                     },
-                    "proxies": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "proxies": {
                       "type": "string"
                     }
                   }
@@ -874,10 +874,10 @@
                     "pool_size": {
                       "type": "string"
                     },
-                    "message": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "message": {
                       "type": "string"
                     }
                   }
@@ -902,16 +902,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "timestamp": {
-                      "type": "string"
-                    },
                     "error": {
                       "type": "string"
                     },
-                    "config": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "config": {
                       "type": "string"
                     }
                   }
@@ -936,10 +936,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "string"
-                    },
-                    "status": {
+                    "message": {
                       "type": "string"
                     },
                     "timestamp": {
@@ -948,7 +945,10 @@
                     "config": {
                       "type": "string"
                     },
-                    "message": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "status": {
                       "type": "string"
                     }
                   }
@@ -973,10 +973,10 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "details": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "details": {
                       "type": "string"
                     }
                   }
@@ -1022,22 +1022,22 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "service": {
+                    "mode": {
                       "type": "string"
                     },
-                    "status": {
-                      "type": "string"
-                    },
-                    "version": {
+                    "uptime_seconds": {
                       "type": "string"
                     },
                     "timestamp": {
                       "type": "string"
                     },
-                    "mode": {
+                    "version": {
                       "type": "string"
                     },
-                    "uptime_seconds": {
+                    "service": {
+                      "type": "string"
+                    },
+                    "status": {
                       "type": "string"
                     }
                   }
