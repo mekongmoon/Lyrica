@@ -38,7 +38,7 @@ def _finalize_event_loops():
     import gc
 
     try:
-        from src.router import _close_thread_loops
+        from src.async_bridge import _close_thread_loops
 
         _close_thread_loops()
     except Exception:

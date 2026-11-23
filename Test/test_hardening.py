@@ -14,7 +14,8 @@ os.environ.setdefault("ADMIN_KEY", "test-admin-key")
 
 from src.app import create_app  # noqa: E402
 from src.cache import load_from_cache, make_cache_key, save_to_cache, CACHE_DIR  # noqa: E402
-from src.router import _sanitize_text, run_async  # noqa: E402
+from src.async_bridge import run_async  # noqa: E402
+from src.routes._helpers import _sanitize_text  # noqa: E402
 from src.trending_analytics import TrendingAnalyticsEngine  # noqa: E402
 
 
@@ -64,12 +65,12 @@ def test_admin_cache_clear_is_post_only(client):
 
 
 def test_suggestion_upstream_failure_returns_502(client, monkeypatch):
-    import src.router as router
+    import src.routes.metadata as metadata_routes
 
     def boom(*args, **kwargs):
         raise RuntimeError("upstream down")
 
-    monkeypatch.setattr(router._SUGGESTION_CLIENT, "get", boom)
+    monkeypatch.setattr(metadata_routes._SUGGESTION_CLIENT, "get", boom)
     response = client.get("/suggestion?q=test")
     assert response.status_code == 502
     assert response.get_json()["status"] == "error"

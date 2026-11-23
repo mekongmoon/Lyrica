@@ -11,7 +11,7 @@ graph TD
     Client([HTTP Client / SDK / Frontend])
 
     subgraph Server["Lyrica Application Layer (Flask + Gevent / Gthread)"]
-        Router["REST Router (src/router.py)"]
+        Router["REST Routes (src/routes/ blueprints)"]
         AsyncBridge["Async-Sync Bridge (run_async)"]
         Limiter["Rate Limiter (Flask-Limiter)"]
         Security["Security Headers & CORS"]
@@ -106,7 +106,7 @@ sequenceDiagram
     - Adjusts default rate limits (e.g. 60 RPM).
     - Seeds the proxy pool from `PROXY_URL`.
 
-### 2. Async-to-Sync Bridge (`run_async()` in `src/router.py`)
+### 2. Async-to-Sync Bridge (`run_async()` in `src/async_bridge.py`)
 Flask routes run synchronously in worker threads, while provider integrations and metadata extractors use `httpx.AsyncClient` with `asyncio.gather` for non-blocking I/O. The `run_async()` bridge manages event loops cleanly with `nest_asyncio` and timeouts.
 
 ### 3. Shared HTTP Connection Pool (`src/sources/base_fetcher.py`)
