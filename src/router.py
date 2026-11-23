@@ -4,9 +4,6 @@ import os
 import re
 import hmac
 import asyncio
-import atexit
-import threading
-import weakref
 import httpx as _httpx
 
 from src.proxy_manager import get_proxy_manager
@@ -28,6 +25,8 @@ from src.translation_cache import (
     load_translation_cache,
     save_translation_cache,
 )
+# Re-exported so existing imports from src.router keep working.
+from src.async_bridge import _close_thread_loops, run_async  # noqa: F401
 
 logger = get_logger("router")
 
@@ -36,25 +35,7 @@ trending_engine = TrendingAnalyticsEngine(cache_ttl_hours=24)
 
 _IS_PRODUCTION = os.getenv("LYRICA_ENV", "").lower() == "production"
 _MAX_TEXT_LEN = int(os.getenv("MAX_TEXT_LENGTH", "200"))
-_thread_state = threading.local()
-_LOOPS: "weakref.WeakSet[asyncio.AbstractEventLoop]" = weakref.WeakSet()
 
-
-@atexit.register
-def _close_thread_loops() -> None:
-    """Close per-thread loops before interpreter teardown.
-
-    Python otherwise destroys the selector's file descriptors first and then
-    garbage-collects the loop, which emits a noisy "Invalid file descriptor: -1"
-    warning on shutdown.
-    """
-    for loop in list(_LOOPS):
-        if loop.is_closed() or loop.is_running():
-            continue
-        try:
-            loop.close()
-        except Exception:  # pragma: no cover - best effort during shutdown
-            pass
 
 # Shared blocking client for the one legacy sync endpoint (/suggestion).
 # httpx.Client is thread-safe; reuse avoids a TCP/TLS handshake per request.
@@ -100,75 +81,6 @@ def _int_arg(name: str, default: int, minimum: int, maximum: int) -> int:
         return default
     return max(minimum, min(maximum, value))
 
-
-def _get_thread_loop() -> asyncio.AbstractEventLoop:
-    """Return a reusable event loop for the current worker thread.
-
-    ``asyncio.get_event_loop()`` raises in worker threads and the previous
-    fallback created (and leaked) a brand-new loop on every request. Reusing a
-    loop per thread keeps the shared httpx connection pool usable and avoids
-    "Event loop is closed" errors under load.
-    """
-    loop = getattr(_thread_state, "loop", None)
-    if loop is None or loop.is_closed():
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        _thread_state.loop = loop
-        _LOOPS.add(loop)
-    return loop
-
-
-def _run_coro_in_new_thread(coro, timeout: int):
-    """Run a coroutine in a short-lived thread when this thread already has a
-    running loop (e.g. an async view or a framework that manages its own)."""
-    outcome: dict = {}
-
-    def _runner():
-        loop = asyncio.new_event_loop()
-        try:
-            asyncio.set_event_loop(loop)
-            outcome["value"] = loop.run_until_complete(
-                asyncio.wait_for(coro, timeout=timeout)
-            )
-        except BaseException as exc:  # propagated to the calling thread
-            outcome["error"] = exc
-        finally:
-            try:
-                loop.run_until_complete(loop.shutdown_asyncgens())
-            except Exception:
-                pass
-            loop.close()
-
-    thread = threading.Thread(target=_runner, name="lyrica-async", daemon=True)
-    thread.start()
-    thread.join(timeout + 5)
-    if thread.is_alive():
-        raise TimeoutError("Request timed out - operation took too long")
-    if "error" in outcome:
-        raise outcome["error"]
-    return outcome.get("value")
-
-
-def run_async(coro, timeout=30):
-    """Run an async coroutine safely from a synchronous Flask view.
-
-    Raises :class:`TimeoutError` (HTTP 504 at the route layer) rather than a
-    generic exception, so clients receive the correct status code.
-    """
-    try:
-        running = asyncio.get_running_loop()
-    except RuntimeError:
-        running = None
-
-    if running is not None:
-        return _run_coro_in_new_thread(coro, timeout)
-
-    loop = _get_thread_loop()
-    try:
-        return loop.run_until_complete(asyncio.wait_for(coro, timeout=timeout))
-    except (asyncio.TimeoutError, TimeoutError) as exc:
-        logger.error("Async operation timed out after %ss", timeout)
-        raise TimeoutError("Request timed out - operation took too long") from exc
 
 
 def register_routes(app):
