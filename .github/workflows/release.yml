@@ -34,7 +34,14 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+
   publish-release:
+    needs: ci
     runs-on: ubuntu-latest
     name: Generate notes and publish release
 

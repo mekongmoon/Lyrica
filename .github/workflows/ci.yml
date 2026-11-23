@@ -1,13 +1,17 @@
 name: CI
 
 on:
-  push:
-    branches: ["main"]
+  # Pushes to main run CI via publish.yml, which gates the Docker image on it.
   pull_request:
   workflow_dispatch: {}
+  # Lets publish/release workflows run the same checks before pushing images.
+  workflow_call: {}
 
+# Only PR runs supersede each other. Other runs (including calls from the
+# publish and release workflows, where github.workflow resolves to the
+# caller's name) get a unique group so they never cancel a caller's checks.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: true
 
 permissions:
