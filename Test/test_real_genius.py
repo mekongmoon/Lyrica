@@ -22,7 +22,19 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.sources.genius_fetcher import GeniusFetcher, _parse_lyrics_page, _extract_container_contents
 
 # Live integration tests are opt-in (see conftest.py).
-_LIVE = pytest.mark.integration
+#
+# They also need GENIUS_TOKEN: without it the fetcher uses genius.com's public
+# search, which Cloudflare challenges (HTTP 403) from datacenter IPs such as
+# GitHub Actions runners. Add GENIUS_TOKEN as a repository secret to run them
+# in the Integration workflow.
+_NEEDS_TOKEN = pytest.mark.skipif(
+    not os.getenv("GENIUS_TOKEN"),
+    reason="GENIUS_TOKEN not set (tokenless public search is blocked from datacenter IPs)",
+)
+
+
+def _LIVE(fn):
+    return pytest.mark.integration(_NEEDS_TOKEN(fn))
 
 
 @_LIVE
