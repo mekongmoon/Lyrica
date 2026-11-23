@@ -54,8 +54,12 @@ lyrica/
 │   │   ├── netease_fetcher.py
 │   │   ├── megalobiz_fetcher.py
 │   │   ├── musixmatch_fetcher.py
-│   │   ├── lrcmux_fetcher.py   # Musixmatch via api.lrcmux.dev; line & word-level sync
-│   │   └── apple_music_fetcher.py # Apple Music AMP API; line, word-level & syllable-level sync
+│   │   ├── lrcmux_fetcher.py   # api.lrcmux.dev aggregator; line & word-level sync
+│   │   ├── apple_music_fetcher.py # Apple Music AMP API; line, word-level & syllable-level sync
+│   │   └── apple_music/        # Apple Music internals used by apple_music_fetcher.py
+│   │       ├── auth.py         # Token, storefront & lyrics-locale resolution from env
+│   │       ├── api.py          # AMP API requests: headers, retries, search, TTML extraction
+│   │       └── ttml.py         # Apple TTML -> timed_lyrics (line / word / syllable)
 │   ├── sentiment_analyzer.py
 │   ├── metadata_extractor.py # Non-blocking async metadata aggregation (httpx + asyncio.gather)
 │   └── trending_analytics.py # Apple Music RSS trending engine (httpx)

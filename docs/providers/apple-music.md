@@ -2,6 +2,8 @@
 
 Added in Lyrica **v1.5.0**, the Apple Music integration (`src/sources/apple_music_fetcher.py`) connects directly to the Apple Music AMP API to provide the most granular lyrics synchronization available: **syllable-level timing** and **word-level karaoke sync**.
 
+The fetcher's internals live in `src/sources/apple_music/`: `auth.py` (token and locale settings), `api.py` (AMP API requests) and `ttml.py` (TTML to `timed_lyrics` conversion). The `lxml` package, listed in `requirements.txt`, is required for TTML parsing.
+
 ---
 
 ## Capabilities

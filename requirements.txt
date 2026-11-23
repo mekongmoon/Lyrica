@@ -38,6 +38,7 @@ ytmusicapi==1.7.4            # YouTube Music (no auth required)
 yt-dlp>=2026.6.9             # YouTube fallback / audio info + subtitle extraction
 youtube-transcript-api==1.2.4 # YouTube caption/transcript fetcher (Layer 2 of YouTube source)
 syncedlyrics==1.0.1          # Synced LRC lyrics: NetEase, Megalobiz, Musixmatch providers
+lxml==5.3.0                  # Apple Music TTML parsing (src/sources/apple_music_fetcher.py)
 
 # ── NLP / sentiment ──────────────────────────────────────────
 textblob==0.18.0             # sentiment analysis on lyrics
