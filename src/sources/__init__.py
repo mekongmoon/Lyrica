@@ -18,7 +18,7 @@ Source status (as of 2026-07-26):
     netease      — via syncedlyrics; synced LRC, large catalog
     megalobiz    — via syncedlyrics; synced LRC, user-contributed
     musixmatch   — via syncedlyrics; optional MUSIXMATCH_TOKEN env var
-    lrcmux       — Musixmatch via api.lrcmux.dev; line & word-level sync, no token
+    lrcmux       — api.lrcmux.dev aggregator (Deezer/KuGou/YT Music); line & word-level sync, no token
     apple_music  — requires APPLE_MUSIC_DEVELOPER_TOKEN (syllable/word/line sync)
 
   DISABLED (dead — kept for reference, not loaded):

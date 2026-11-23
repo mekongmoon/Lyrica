@@ -1,9 +1,13 @@
 """
 src/sources/lrcmux_fetcher.py
 
-Fetches Musixmatch lyrics from the lrcmux API (https://api.lrcmux.dev).
-Utilizes lrcmux's aggregate interface to retrieve high-quality, synchronized
-lyrics from Musixmatch without requiring a developer/user token.
+Fetches lyrics from the lrcmux API (https://api.lrcmux.dev), an aggregator
+that returns line- and word-synchronized lyrics without a token.
+
+lrcmux picks the upstream provider itself (currently Deezer, KuGou or
+YouTube Music; see GET /sources). Set LRCMUX_SOURCES to restrict it. A
+hard-coded filter broke when lrcmux dropped its Musixmatch provider: every
+request then failed with HTTP 400 "no providers match the requested filter".
 
 Sync levels:
   - timestamps=True, word_level=False (default) → requests line-level sync (level=line)
@@ -12,7 +16,7 @@ Sync levels:
 """
 
 import httpx
-from src.config import LRCMUX_API_URL
+from src.config import LRCMUX_API_URL, LRCMUX_SOURCES
 from src.logger import get_logger
 from src.proxy_manager import get_proxy_manager
 from .base_fetcher import BaseFetcher, build_result
@@ -27,7 +31,7 @@ class LrcmuxFetcher(BaseFetcher):
 
     async def fetch(self, artist: str, song: str, timestamps: bool = False, word_level: bool = False):
         """
-        Fetch lyrics from lrcmux (targeting the musixmatch source).
+        Fetch lyrics from lrcmux.
 
         Args:
             artist:     Artist name
@@ -52,9 +56,10 @@ class LrcmuxFetcher(BaseFetcher):
         params: dict = {
             "artist": artist,
             "title": song,
-            "sources": "musixmatch",
             "format": "json",
         }
+        if LRCMUX_SOURCES:
+            params["sources"] = LRCMUX_SOURCES
 
         # Only restrict sync level when timestamps are requested
         if timestamps:
@@ -71,8 +76,15 @@ class LrcmuxFetcher(BaseFetcher):
 
                 resp = await client.get(url, params=params)
 
+                if resp.status_code == 404:
+                    logger.info("Lrcmux: no lyrics found")
+                    return None
                 if resp.status_code != 200:
-                    logger.warning(f"Lrcmux returned status code {resp.status_code}")
+                    # lrcmux returns RFC 7807 problem JSON; log the reason so
+                    # API changes are diagnosable from logs alone.
+                    logger.warning(
+                        f"Lrcmux returned status code {resp.status_code}: {resp.text[:200]}"
+                    )
                     return None
 
                 data = resp.json()

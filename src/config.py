@@ -36,6 +36,9 @@ LRCLIB_API_URL = os.getenv("LRCLIB_API_URL", "https://lrclib.net/api/get")
 
 # lrcmux
 LRCMUX_API_URL = os.getenv("LRCMUX_API_URL", "https://api.lrcmux.dev")
+# Optional comma-separated lrcmux provider filter (see GET /sources on the
+# lrcmux API, e.g. "deezer,kugou"). Empty lets lrcmux pick the best match.
+LRCMUX_SOURCES = os.getenv("LRCMUX_SOURCES", "").strip()
 
 # Redis connection URL (optional — enables L2 distributed cache across workers/containers)
 # Example: redis://:password@redis-host:6379/0 or redis://localhost:6379/0

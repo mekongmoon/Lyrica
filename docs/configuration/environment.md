@@ -66,3 +66,4 @@ Lyrica uses environment variables for sensitive tokens, infrastructure endpoints
 | `YT_COOKIES_PATH` | No | — | Absolute filesystem path to `cookies.txt` for YouTube authentication. |
 | `LRCLIB_API_URL` | No | `https://lrclib.net/api/get` | Override base URL for LRCLIB API. |
 | `LRCMUX_API_URL` | No | `https://api.lrcmux.dev` | Override base URL for Lrcmux API. |
+| `LRCMUX_SOURCES` | No | — | Comma-separated lrcmux provider filter (e.g. `deezer,kugou`). Empty lets lrcmux pick. |
