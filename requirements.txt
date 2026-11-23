@@ -10,7 +10,7 @@ Werkzeug==3.1.9              # Flask 3.1.x's WSGI toolkit
 flask-cors==6.0.5            # CORS headers
 
 # ── HTTP server (production) ─────────────────────────────────
-gunicorn==22.0.0             # WSGI production server for Render / VPS / Linux
+gunicorn==27.0.1             # WSGI production server for Render / VPS / Linux
                              # Start cmd: gunicorn -c gunicorn.config.py run:app
 
 # ── Async HTTP client (replaces requests in all fetchers) ────
