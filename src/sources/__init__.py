@@ -21,11 +21,8 @@ Source status (as of 2026-07-26):
     lrcmux       — api.lrcmux.dev aggregator (Deezer/KuGou/YT Music); line & word-level sync, no token
     apple_music  — requires APPLE_MUSIC_DEVELOPER_TOKEN (syllable/word/line sync)
 
-  DISABLED (dead — kept for reference, not loaded):
-    simpmusic   — removed (api-lyrics.simpmusic.org is unreliable)
-    lyricsovh   — no results / unreliable
-    chartlyrics — XML API dead
-    lyricsfreek — DNS failure (domain dead)
+  REMOVED (deleted; see git history): simpmusic, lyricsovh, chartlyrics,
+  lyricsfreek — their upstream APIs were unreliable or offline.
 """
 import os
 from src.logger import get_logger
@@ -62,11 +59,5 @@ else:
     logger.info(
         "Apple Music fetcher skipped (set APPLE_MUSIC_DEVELOPER_TOKEN to enable)"
     )
-
-# ── Disabled fetchers (do NOT load into ALL_FETCHERS) ────────────────────────
-# _try_import("simpmusic",   "src.sources.simp_music_fetcher",  "SimpMusicFetcher")   # removed
-# _try_import("lyricsovh",   "src.sources.lyricsovh_fetcher",   "LyricsOvhFetcher")   # dead
-# _try_import("chartlyrics", "src.sources.chartlyrics_fetcher", "ChartLyricsFetcher") # dead
-# _try_import("lyricsfreek", "src.sources.lyricsfreek_fetcher", "LyricsFreekFetcher") # DNS dead
 
 logger.info(f"Active fetchers: {list(ALL_FETCHERS.keys())}")

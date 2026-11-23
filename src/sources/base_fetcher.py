@@ -74,7 +74,7 @@ def build_result(
 
 
 # --------------------------------------------------------------------------- #
-# Shared LRC parser — used by LRCLIB and SimpMusic
+# Shared LRC parser — used by LRCLIB, NetEase, Megalobiz and Musixmatch
 # --------------------------------------------------------------------------- #
 _LRC_RE = re.compile(r"\[(\d{2}:\d{2}\.?\d{0,3})\](.*)")
 
