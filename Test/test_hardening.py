@@ -144,6 +144,28 @@ def test_run_async_is_thread_safe():
     assert results == [1] * 32
 
 
+def test_run_async_inside_running_event_loop():
+    """run_async must work when the caller already has a running loop.
+
+    This is the case nest_asyncio exists for. The bridge handles it without
+    nesting loops: it runs the coroutine on a short-lived helper thread.
+    """
+    async def value():
+        return 42
+
+    async def slow():
+        await asyncio.sleep(2)
+
+    async def caller():
+        # Synchronous call from inside a running loop (e.g. an async view).
+        assert run_async(value(), timeout=2) == 42
+        with pytest.raises(TimeoutError):
+            run_async(slow(), timeout=0.05)
+        return True
+
+    assert asyncio.run(caller()) is True
+
+
 def test_analytics_counters_are_bounded():
     engine = TrendingAnalyticsEngine(cache_ttl_hours=1)
     engine._max_unique_queries = 50  # force an aggressive rebuild threshold

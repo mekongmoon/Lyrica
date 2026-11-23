@@ -44,7 +44,6 @@ lxml==5.3.0                  # Apple Music TTML parsing (src/sources/apple_music
 textblob==0.18.0             # sentiment analysis on lyrics
 
 # ── Async helpers ────────────────────────────────────────────
-nest_asyncio==1.6.0          # allows nested event loops (Flask sync→async bridge)
 anyio==4.14.2                 # async compatibility layer used by httpx
 
 # ── Groq AI (Translation & Romanization) ────────────────────
