@@ -60,3 +60,27 @@ def test_convert_line_level():
 def test_convert_empty_or_invalid_ttml():
     assert _TTMLConverter().convert("") == ("", [], "line")
     assert _TTMLConverter().convert("<not-xml") == ("", [], "line")
+
+
+def test_convert_word_level():
+    _, timed, sync_level = _TTMLConverter().convert(SAMPLE_TTML, word_level=True)
+
+    assert sync_level == "word"
+    assert timed[0]["words"] == [
+        {"text": "Hello", "start": 1000, "end": 2000},
+        {"text": "world,", "start": 2100, "end": 3500},
+    ]
+    assert timed[1]["words"] == [{"text": "Bye", "start": 3604250, "end": 3605000}]
+
+
+def test_convert_syllable_level():
+    _, timed, sync_level = _TTMLConverter().convert(SAMPLE_TTML, syllabus=True)
+
+    assert sync_level == "syllable"
+    hello, world = timed[0]["words"]
+    assert hello["text"] == "Hello"
+    assert hello["syllables"] == [
+        {"text": "Hel", "start": 1000, "end": 1400},
+        {"text": "lo", "start": 1400, "end": 2000},
+    ]
+    assert world["syllables"] == [{"text": "world,", "start": 2100, "end": 3500}]
