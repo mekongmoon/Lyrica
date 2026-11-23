@@ -69,22 +69,22 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "timestamp": {
-                      "type": "string"
-                    },
                     "mode": {
                       "type": "string"
                     },
-                    "service": {
+                    "timestamp": {
                       "type": "string"
                     },
-                    "uptime_seconds": {
+                    "version": {
                       "type": "string"
                     },
                     "status": {
                       "type": "string"
                     },
-                    "version": {
+                    "uptime_seconds": {
+                      "type": "string"
+                    },
+                    "service": {
                       "type": "string"
                     }
                   }
@@ -116,52 +116,6 @@
         }
       }
     },
-    "/": {
-      "get": {
-        "summary": "Home",
-        "description": "Main API documentation endpoint",
-        "operationId": "home_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "description": {
-                      "type": "string"
-                    },
-                    "endpoints": {
-                      "type": "string"
-                    },
-                    "fetchers": {
-                      "type": "string"
-                    },
-                    "timestamp": {
-                      "type": "string"
-                    },
-                    "parameters": {
-                      "type": "string"
-                    },
-                    "version": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "api": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/lyrics/": {
       "get": {
         "summary": "Lyrics",
@@ -169,7 +123,7 @@
         "operationId": "lyrics_get",
         "parameters": [
           {
-            "name": "sequence",
+            "name": "country",
             "in": "query",
             "required": false,
             "schema": {
@@ -185,7 +139,15 @@
             }
           },
           {
-            "name": "translate",
+            "name": "metadata",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sequence",
             "in": "query",
             "required": false,
             "schema": {
@@ -201,23 +163,7 @@
             }
           },
           {
-            "name": "timestamps",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "syllabus",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "word",
+            "name": "romanize",
             "in": "query",
             "required": false,
             "schema": {
@@ -233,7 +179,47 @@
             }
           },
           {
-            "name": "romanize",
+            "name": "syllabus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mood",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "translate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "word",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timestamps",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fast",
             "in": "query",
             "required": false,
             "schema": {
@@ -250,38 +236,6 @@
           },
           {
             "name": "song",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mood",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fast",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "metadata",
             "in": "query",
             "required": false,
             "schema": {
@@ -304,6 +258,101 @@
                       "type": "string"
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Home",
+        "description": "Main API documentation endpoint",
+        "operationId": "home_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "api": {
+                      "type": "string"
+                    },
+                    "fetchers": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "endpoints": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "parameters": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/app": {
+      "get": {
+        "summary": "App Page",
+        "description": "Serve the web-based music application",
+        "operationId": "app_page_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/favicon.ico": {
+      "get": {
+        "summary": "Favicon",
+        "description": "Favicon endpoint",
+        "operationId": "favicon_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
                 }
               }
             }
@@ -356,293 +405,6 @@
         }
       }
     },
-    "/trending/": {
-      "get": {
-        "summary": "Trending",
-        "description": "Get trending songs by country",
-        "operationId": "trending_get",
-        "parameters": [
-          {
-            "name": "country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "countries",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/analytics/top-queries/": {
-      "get": {
-        "summary": "Top Queries",
-        "description": "Get top user queries globally or by country",
-        "operationId": "top_queries_get",
-        "parameters": [
-          {
-            "name": "days",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/analytics/trending-by-country/": {
-      "get": {
-        "summary": "Trending By Country",
-        "description": "Get top queries for each country",
-        "operationId": "trending_by_country_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/analytics/trending-vs-queries/": {
-      "get": {
-        "summary": "Trending Vs Queries",
-        "description": "Compare trending songs with top user queries",
-        "operationId": "trending_vs_queries_get",
-        "parameters": [
-          {
-            "name": "country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/analytics/trending-intersection/": {
-      "get": {
-        "summary": "Trending Intersection",
-        "description": "Find queries that match trending songs",
-        "operationId": "trending_intersection_get",
-        "parameters": [
-          {
-            "name": "country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/jiosaavn/search": {
-      "get": {
-        "summary": "Jiosaavn Search",
-        "description": "Search for songs on JioSaavn",
-        "operationId": "jiosaavn_search_get",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "results": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/jiosaavn/play": {
-      "get": {
-        "summary": "Jiosaavn Play",
-        "description": "Get playable stream URL from JioSaavn",
-        "operationId": "jiosaavn_play_get",
-        "parameters": [
-          {
-            "name": "songLink",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    },
-                    "error": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/suggestion": {
       "get": {
         "summary": "Suggestion",
@@ -666,50 +428,22 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "limit": {
-                      "type": "string"
-                    },
-                    "results": {
-                      "type": "string"
-                    },
                     "query": {
                       "type": "string"
                     },
                     "total": {
                       "type": "string"
                     },
-                    "status": {
+                    "results": {
                       "type": "string"
                     },
                     "error": {
                       "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/app": {
-      "get": {
-        "summary": "App Page",
-        "description": "Serve the web-based music application",
-        "operationId": "app_page_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "status": {
+                    },
+                    "limit": {
                       "type": "string"
                     },
-                    "error": {
+                    "status": {
                       "type": "string"
                     }
                   }
@@ -788,27 +522,6 @@
         }
       }
     },
-    "/favicon.ico": {
-      "get": {
-        "summary": "Favicon",
-        "description": "Favicon endpoint",
-        "operationId": "favicon_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v2/proxy/set": {
       "post": {
         "summary": "Proxy Set",
@@ -835,10 +548,10 @@
                     "pool_size": {
                       "type": "string"
                     },
-                    "message": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "message": {
                       "type": "string"
                     },
                     "error": {
@@ -878,10 +591,10 @@
                     "pool_size": {
                       "type": "string"
                     },
-                    "message": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "message": {
                       "type": "string"
                     },
                     "error": {
@@ -919,10 +632,10 @@
                     "pool_size": {
                       "type": "string"
                     },
-                    "message": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "message": {
                       "type": "string"
                     },
                     "error": {
@@ -953,10 +666,10 @@
                     "pool_size": {
                       "type": "string"
                     },
-                    "proxies": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "proxies": {
                       "type": "string"
                     }
                   }
@@ -984,10 +697,10 @@
                     "pool_size": {
                       "type": "string"
                     },
-                    "message": {
+                    "status": {
                       "type": "string"
                     },
-                    "status": {
+                    "message": {
                       "type": "string"
                     }
                   }
@@ -1012,16 +725,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "config": {
-                      "type": "string"
-                    },
                     "status": {
                       "type": "string"
                     },
-                    "error": {
+                    "config": {
                       "type": "string"
                     },
                     "timestamp": {
+                      "type": "string"
+                    },
+                    "error": {
                       "type": "string"
                     }
                   }
@@ -1046,16 +759,303 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "config": {
+                    "message": {
                       "type": "string"
                     },
                     "timestamp": {
                       "type": "string"
                     },
-                    "message": {
+                    "error": {
                       "type": "string"
                     },
                     "status": {
+                      "type": "string"
+                    },
+                    "config": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jiosaavn/search": {
+      "get": {
+        "summary": "Jiosaavn Search",
+        "description": "Search for songs on JioSaavn",
+        "operationId": "jiosaavn_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "results": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jiosaavn/play": {
+      "get": {
+        "summary": "Jiosaavn Play",
+        "description": "Get playable stream URL from JioSaavn",
+        "operationId": "jiosaavn_play_get",
+        "parameters": [
+          {
+            "name": "songLink",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trending/": {
+      "get": {
+        "summary": "Trending",
+        "description": "Get trending songs by country",
+        "operationId": "trending_get",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "countries",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/top-queries/": {
+      "get": {
+        "summary": "Top Queries",
+        "description": "Get top user queries globally or by country",
+        "operationId": "top_queries_get",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/trending-by-country/": {
+      "get": {
+        "summary": "Trending By Country",
+        "description": "Get top queries for each country",
+        "operationId": "trending_by_country_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/trending-vs-queries/": {
+      "get": {
+        "summary": "Trending Vs Queries",
+        "description": "Compare trending songs with top user queries",
+        "operationId": "trending_vs_queries_get",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "string"
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/analytics/trending-intersection/": {
+      "get": {
+        "summary": "Trending Intersection",
+        "description": "Find queries that match trending songs",
+        "operationId": "trending_intersection_get",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
                       "type": "string"
                     },
                     "error": {
