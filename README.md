@@ -250,9 +250,9 @@ Contributions are warmly welcomed! Please read our [Contributing Guide](docs/dev
         <tr>
             <td align="center">
                 <a href="https://github.com/mekongmoon">
-                    <img src="https://avatars.githubusercontent.com/u/198341775?v=4" width="100;" alt="Mekongmoon"/>
+                    <img src="https://avatars.githubusercontent.com/u/268707224?v=4" width="100;" alt="mekongmoon"/>
                     <br />
-                    <sub><b>Mekong Moon (@mekongmoon)</b></sub>
+                    <sub><b>mekongmoon</b></sub>
                 </a>
             </td>
             <td align="center">
