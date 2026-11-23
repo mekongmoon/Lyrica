@@ -41,15 +41,16 @@ from typing import Any, Optional
 import httpx
 from lxml import etree
 
-from src.config import (
-    APPLE_MUSIC_USER_TOKEN,
-    APPLE_STOREFRONT,
-    APPLE_LYRICS_LANGUAGE,
-    APPLE_LYRICS_SCRIPT,
-)
 from src.logger import get_logger
 from src.proxy_manager import get_proxy_manager
 from .base_fetcher import BaseFetcher, build_result
+from .apple_music.auth import (
+    _resolve_developer_token,
+    _resolve_lyrics_language,
+    _resolve_lyrics_script,
+    _resolve_storefront,
+    _resolve_user_token,
+)
 
 logger = get_logger("apple_music_fetcher")
 
@@ -63,33 +64,6 @@ _DEFAULT_MAX_RETRIES = 3
 _RETRYABLE_STATUS_CODES = frozenset({429, 500, 502, 503, 504})
 
 _UA = "Lyrica/1.0 (https://github.com/Wilooper/Lyrica)"
-
-
-# ── Token resolution ─────────────────────────────────────────────────────────
-def _resolve_developer_token() -> str | None:
-    """Resolve Apple Music developer token from env (primary: explicit var)."""
-    return (
-        os.getenv("APPLE_MUSIC_DEVELOPER_TOKEN")
-        or os.getenv("DEVELOPER_TOKEN")
-    )
-
-
-def _resolve_user_token() -> str | None:
-    """Resolve Apple Music Music User Token from env."""
-    return os.getenv("MUSIC_USER_TOKEN")
-
-
-def _resolve_storefront() -> str:
-    """Resolve storefront from env, defaulting to 'us'."""
-    return (os.getenv("APPLE_STOREFRONT") or APPLE_STOREFRONT or "us").lower().strip()
-
-
-def _resolve_lyrics_language() -> str:
-    return (os.getenv("APPLE_LYRICS_LANGUAGE") or APPLE_LYRICS_LANGUAGE or "en-gb").strip().lower()
-
-
-def _resolve_lyrics_script() -> str:
-    return (os.getenv("APPLE_LYRICS_SCRIPT") or APPLE_LYRICS_SCRIPT or "en-Latn").strip()
 
 
 # ── Apple Music API helpers ──────────────────────────────────────────────────
