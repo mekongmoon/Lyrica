@@ -3,10 +3,14 @@ src/sources/apple_music_fetcher.py
 
 Fetches syllable-timed lyrics from Apple Music's private AMP API.
 
-Adapted from the LyricaAME-py project. This is a self-contained, dependency-free
-native integration — no external package required. It searches the Apple Music
-catalog by artist + song title, resolves the song ID, then fetches the
-syllable-lyrics TTML document from the private AMP endpoint.
+Adapted from the LyricaAME-py project. It searches the Apple Music catalog by
+artist + song title, resolves the song ID, then fetches the syllable-lyrics
+TTML document from the private AMP endpoint.
+
+Internals live in the src/sources/apple_music/ package:
+  auth.py  token, storefront and lyrics-locale resolution from the environment
+  api.py   AMP API requests (headers, retries, catalog search, TTML extraction)
+  ttml.py  Apple TTML -> Lyrica timed_lyrics conversion (needs lxml)
 
 Apple Music provides three granularities of synced lyrics:
   1. Syllable-level — per-syllable timing (requires &syllabus=true)
