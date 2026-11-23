@@ -364,7 +364,13 @@ class _TTMLConverter:
             "start": line_begin,
             "end": line_end,
             "spans": [
-                {"text": s.text, "start": s.start_time, "end": s.end_time}
+                {
+                    "text": s.text,
+                    "start": s.start_time,
+                    "end": s.end_time,
+                    # Needed by _build_words() to find word boundaries.
+                    "leading_space": s.leading_space,
+                }
                 for s in spans
             ],
         }
