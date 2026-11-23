@@ -23,10 +23,11 @@ curl "http://127.0.0.1:9999/lyrics/?artist=Queen&song=Radio%20Ga%20Ga&sequence=l
 
 **Status**: Free, no token required.
 
-[Lrcmux](https://api.lrcmux.dev) aggregates synchronized lyrics from Musixmatch and delivers them with **word-level synchronization**.
+[Lrcmux](https://api.lrcmux.dev) aggregates synchronized lyrics from several providers (currently Deezer, KuGou and YouTube Music) and delivers them with **word-level synchronization**.
 
 - **Capabilities**: Line-level timestamps and millisecond-accurate word-level timestamps (`&word=true`).
 - **Base URL Override**: `LRCMUX_API_URL` (default: `https://api.lrcmux.dev`).
+- **Provider Filter**: `LRCMUX_SOURCES` (default: empty, so lrcmux picks the best match). Comma-separated IDs from `GET https://api.lrcmux.dev/sources`, e.g. `deezer,kugou`.
 
 ```bash
 curl "http://127.0.0.1:9999/lyrics/?artist=Adele&song=Hello&sequence=lrcmux&timestamps=true&word=true"

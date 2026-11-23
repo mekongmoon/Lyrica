@@ -226,16 +226,23 @@ Full, structured documentation is available in the [`docs/`](docs/) directory an
 
 ## 🧪 Testing & Verification
 
-Lyrica includes an end-to-end automated test harness:
-
 ```bash
-# Run all unit, live integration, and performance benchmarks
-python Test/run_all_tests.py
+pip install -r requirements.txt -r requirements-dev.txt
+
+# Unit tests (no network; this is what CI runs on Python 3.11–3.13)
+pytest
+
+# Live integration tests against real providers (lrcmux, Genius, metadata, trending)
+LYRICA_RUN_INTEGRATION=1 pytest -m integration   # Genius tests also need GENIUS_TOKEN
+
+# Endpoint checks against a running deployment, with an HTML report
+python Test/tester.py --base-url http://127.0.0.1:9999
 ```
+
+Live integration tests run weekly and on PRs that touch sources or tests (the **Integration** workflow), separately from the blocking CI checks.
 
 Results:
 - **Genius Parser Unit Tests**: Verified depth-tracking parsing without missing verses.
-- **Live Integration Tests**: Live requests against real Genius servers (`The Weeknd`, `Queen`).
 - **Performance Benchmark**: **89,182 req/s** on L1 cache, **4,276 req/s** on concurrent Flask routes.
 
 ---
