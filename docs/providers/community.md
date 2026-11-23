@@ -72,4 +72,4 @@ Community-contributed LRC timestamp database with strong coverage of indie, elec
 
 Direct connection to the Musixmatch API.
 - **Authentication**: `MUSIXMATCH_TOKEN` in `.env`.
-- Note: If `MUSIXMATCH_TOKEN` is not set, this provider is skipped. For tokenless Musixmatch data with word-level sync, use **Lrcmux (ID 7)** instead.
+- Note: If `MUSIXMATCH_TOKEN` is not set, this provider is skipped. For tokenless word-level sync, use **Lrcmux (ID 7)** instead (it serves Deezer, KuGou and YouTube Music lyrics, not Musixmatch).
