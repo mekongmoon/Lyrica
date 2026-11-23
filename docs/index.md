@@ -32,7 +32,7 @@ graph LR
 
 ## Key Highlights
 
-- **8 Active Providers**: Intelligent fallback across LRCLIB, Lrcmux, Genius, Apple Music, YouTube Music, NetEase, Megalobiz, and Musixmatch.
+- **8 Providers**: Intelligent fallback across LRCLIB, Lrcmux, Genius, YouTube Music, NetEase and Megalobiz (no configuration needed), plus Musixmatch and Apple Music when their tokens are set.
 - **Granular Synchronization**:
     - **Line-level**: Standard LRC format timestamps.
     - **Word-level**: Millisecond-accurate word timing for interactive karaoke applications (`&word=true`).

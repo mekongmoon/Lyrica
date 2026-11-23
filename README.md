@@ -20,13 +20,13 @@
 
 ## 📌 Overview
 
-**Lyrica** aggregates song lyrics across **8 active sources** with intelligent multi-sync degradation, sub-millisecond multi-tier caching (89k+ requests/sec), and real-time neural translation/romanization powered by Groq LLMs (`openai/gpt-oss-120b`).
+**Lyrica** aggregates song lyrics across **8 sources** (6 work with no configuration; Musixmatch and Apple Music need a token) with intelligent multi-sync degradation, sub-millisecond multi-tier caching (89k+ requests/sec), and real-time neural translation/romanization powered by Groq LLMs (`openai/gpt-oss-120b`).
 
 Whether you are building a **karaoke player**, a **music streaming client**, an **accessibility read-along tool**, or a **music discovery platform**, Lyrica delivers consistent, structured JSON responses with zero mandatory configuration.
 
 ### ✨ Key Features
 
-- 🎵 **Multi-Provider Aggregation**: Aggregates from LRCLIB, Genius, Apple Music, YouTube Music, Lrcmux, NetEase, Megalobiz, and Musixmatch.
+- 🎵 **Multi-Provider Aggregation**: LRCLIB, Lrcmux, Genius, YouTube Music, NetEase and Megalobiz work out of the box. Musixmatch (`MUSIXMATCH_TOKEN`) and Apple Music (`APPLE_MUSIC_DEVELOPER_TOKEN`) are enabled by setting a token.
 - ⏱️ **Multi-Granular Synchronization**:
   - **Line-Level (LRC)**: Sentence-by-sentence millisecond timing (`&timestamps=true`).
   - **Word-Level (Karaoke)**: Per-word start and end timing for real-time highlighting (`&word=true`).

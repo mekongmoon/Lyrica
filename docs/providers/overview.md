@@ -1,6 +1,6 @@
 # Lyrics Providers Matrix
 
-Lyrica aggregates lyrics from **8 active providers**, each offering different synchronization capabilities, authentication requirements, and strengths.
+Lyrica aggregates lyrics from **8 providers**, each offering different synchronization capabilities, authentication requirements, and strengths. Six work with no configuration; **Musixmatch** needs `MUSIXMATCH_TOKEN` (otherwise it skips every request) and **Apple Music** needs `APPLE_MUSIC_DEVELOPER_TOKEN` (otherwise it is not loaded).
 
 ---
 
