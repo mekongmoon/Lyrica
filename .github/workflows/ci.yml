@@ -70,3 +70,10 @@ jobs:
 
       - name: Run pytest
         run: pytest -ra
+
+      # No test starts Gunicorn, so validate both config files (and that the
+      # app imports under them) against the pinned Gunicorn version.
+      - name: Check Gunicorn configs
+        run: |
+          gunicorn --check-config -c gunicorn_production.py run:app
+          gunicorn --check-config -c gunicorn.config.py run:app
