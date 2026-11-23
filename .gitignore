@@ -63,5 +63,8 @@ readme-best-practice*/
 Test/lrcmux/result_*.json
 Test/lrcmux/server.log
 Test/lrcmux/lyrics_response.json
+# Screenshots of local tester.py runs
+Test/Test_result*.jpg
+Test/Test_result*.png
 
 
