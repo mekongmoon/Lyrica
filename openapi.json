@@ -6,6 +6,116 @@
     "description": "Auto-generated OpenAPI documentation using AST static analysis."
   },
   "paths": {
+    "/admin/cache/clear": {
+      "post": {
+        "summary": "Admin Clear Cache",
+        "description": "Endpoint for admin_clear_cache",
+        "operationId": "admin_clear_cache_post",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "details": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/cache/stats": {
+      "get": {
+        "summary": "Admin Cache Stats",
+        "description": "Endpoint for admin_cache_stats",
+        "operationId": "admin_cache_stats_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Liveness probe \u2014 deliberately does no network I/O.\n\nA health check that pings Redis on every probe can block a worker and\ncause the orchestrator to kill a perfectly healthy container. Use\n/health/ready for dependency checks.",
+        "operationId": "health_check_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    },
+                    "mode": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "service": {
+                      "type": "string"
+                    },
+                    "uptime_seconds": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "summary": "Readiness Check",
+        "description": "Readiness probe \u2014 verifies optional Redis connectivity.",
+        "operationId": "readiness_check_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/": {
       "get": {
         "summary": "Home",
@@ -20,16 +130,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "timestamp": {
+                    "parameters": {
                       "type": "string"
                     },
-                    "endpoints": {
+                    "fetchers": {
                       "type": "string"
                     },
                     "version": {
                       "type": "string"
                     },
-                    "parameters": {
+                    "timestamp": {
                       "type": "string"
                     },
                     "description": {
@@ -38,10 +148,10 @@
                     "status": {
                       "type": "string"
                     },
-                    "fetchers": {
+                    "api": {
                       "type": "string"
                     },
-                    "api": {
+                    "endpoints": {
                       "type": "string"
                     }
                   }
@@ -59,103 +169,7 @@
         "operationId": "lyrics_get",
         "parameters": [
           {
-            "name": "language",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "timestamp",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mood",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "syllabus",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "artist",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "pass",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "metadata",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "fast",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "timestamps",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "song",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "romanize",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "country",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sequence",
             "in": "query",
             "required": false,
             "schema": {
@@ -171,7 +185,103 @@
             }
           },
           {
+            "name": "artist",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timestamp",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "song",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "word",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "country",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "syllabus",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sequence",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "metadata",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "romanize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timestamps",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mood",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fast",
             "in": "query",
             "required": false,
             "schema": {
@@ -277,13 +387,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "data": {
                       "type": "string"
                     },
                     "status": {
                       "type": "string"
                     },
-                    "data": {
+                    "error": {
                       "type": "string"
                     }
                   }
@@ -325,13 +435,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "data": {
                       "type": "string"
                     },
                     "status": {
                       "type": "string"
                     },
-                    "data": {
+                    "error": {
                       "type": "string"
                     }
                   }
@@ -356,13 +466,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "data": {
                       "type": "string"
                     },
                     "status": {
                       "type": "string"
                     },
-                    "data": {
+                    "error": {
                       "type": "string"
                     }
                   }
@@ -396,13 +506,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "data": {
                       "type": "string"
                     },
                     "status": {
                       "type": "string"
                     },
-                    "data": {
+                    "error": {
                       "type": "string"
                     }
                   }
@@ -436,13 +546,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
+                    "data": {
                       "type": "string"
                     },
                     "status": {
                       "type": "string"
                     },
-                    "data": {
+                    "error": {
                       "type": "string"
                     }
                   }
@@ -476,13 +586,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "results": {
-                      "type": "string"
-                    },
                     "error": {
                       "type": "string"
                     },
                     "status": {
+                      "type": "string"
+                    },
+                    "results": {
                       "type": "string"
                     }
                   }
@@ -556,22 +666,22 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "query": {
-                      "type": "string"
-                    },
-                    "limit": {
-                      "type": "string"
-                    },
                     "total": {
-                      "type": "string"
-                    },
-                    "results": {
                       "type": "string"
                     },
                     "error": {
                       "type": "string"
                     },
                     "status": {
+                      "type": "string"
+                    },
+                    "results": {
+                      "type": "string"
+                    },
+                    "query": {
+                      "type": "string"
+                    },
+                    "limit": {
                       "type": "string"
                     }
                   }
@@ -664,10 +774,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "status": {
+                    "details": {
                       "type": "string"
                     },
-                    "details": {
+                    "status": {
                       "type": "string"
                     }
                   }
@@ -722,9 +832,6 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "pool_size": {
-                      "type": "string"
-                    },
                     "error": {
                       "type": "string"
                     },
@@ -732,6 +839,9 @@
                       "type": "string"
                     },
                     "message": {
+                      "type": "string"
+                    },
+                    "pool_size": {
                       "type": "string"
                     }
                   }
@@ -765,9 +875,6 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "pool_size": {
-                      "type": "string"
-                    },
                     "error": {
                       "type": "string"
                     },
@@ -775,6 +882,9 @@
                       "type": "string"
                     },
                     "message": {
+                      "type": "string"
+                    },
+                    "pool_size": {
                       "type": "string"
                     }
                   }
@@ -806,9 +916,6 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "pool_size": {
-                      "type": "string"
-                    },
                     "error": {
                       "type": "string"
                     },
@@ -816,6 +923,9 @@
                       "type": "string"
                     },
                     "message": {
+                      "type": "string"
+                    },
+                    "pool_size": {
                       "type": "string"
                     }
                   }
@@ -840,13 +950,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "pool_size": {
-                      "type": "string"
-                    },
                     "status": {
                       "type": "string"
                     },
                     "proxies": {
+                      "type": "string"
+                    },
+                    "pool_size": {
                       "type": "string"
                     }
                   }
@@ -871,13 +981,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "pool_size": {
-                      "type": "string"
-                    },
                     "status": {
                       "type": "string"
                     },
                     "message": {
+                      "type": "string"
+                    },
+                    "pool_size": {
                       "type": "string"
                     }
                   }
@@ -905,10 +1015,10 @@
                     "error": {
                       "type": "string"
                     },
-                    "status": {
+                    "timestamp": {
                       "type": "string"
                     },
-                    "timestamp": {
+                    "status": {
                       "type": "string"
                     },
                     "config": {
@@ -936,7 +1046,7 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "message": {
+                    "error": {
                       "type": "string"
                     },
                     "timestamp": {
@@ -945,123 +1055,13 @@
                     "config": {
                       "type": "string"
                     },
-                    "error": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/cache/clear": {
-      "post": {
-        "summary": "Admin Clear Cache",
-        "description": "Endpoint for admin_clear_cache",
-        "operationId": "admin_clear_cache_post",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
                     "status": {
                       "type": "string"
                     },
-                    "details": {
+                    "message": {
                       "type": "string"
                     }
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/cache/stats": {
-      "get": {
-        "summary": "Admin Cache Stats",
-        "description": "Endpoint for admin_cache_stats",
-        "operationId": "admin_cache_stats_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/health": {
-      "get": {
-        "summary": "Health Check",
-        "description": "Liveness probe \u2014 deliberately does no network I/O.\n\nA health check that pings Redis on every probe can block a worker and\ncause the orchestrator to kill a perfectly healthy container. Use\n/health/ready for dependency checks.",
-        "operationId": "health_check_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "mode": {
-                      "type": "string"
-                    },
-                    "uptime_seconds": {
-                      "type": "string"
-                    },
-                    "timestamp": {
-                      "type": "string"
-                    },
-                    "version": {
-                      "type": "string"
-                    },
-                    "service": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/health/ready": {
-      "get": {
-        "summary": "Readiness Check",
-        "description": "Readiness probe \u2014 verifies optional Redis connectivity.",
-        "operationId": "readiness_check_get",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Successful response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
                 }
               }
             }
