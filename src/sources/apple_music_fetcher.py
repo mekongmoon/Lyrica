@@ -37,7 +37,7 @@ import httpx
 
 from src.logger import get_logger
 from src.proxy_manager import get_proxy_manager
-from .base_fetcher import BaseFetcher, build_result
+
 from .apple_music.api import (
     _AMP_BASE_URL,
     _UA,
@@ -55,6 +55,7 @@ from .apple_music.auth import (
     _resolve_user_token,
 )
 from .apple_music.ttml import _TTMLConverter
+from .base_fetcher import BaseFetcher, build_result
 
 logger = get_logger("apple_music_fetcher")
 
@@ -216,8 +217,8 @@ class AppleMusicFetcher(BaseFetcher):
                 # If word-level requested but not available, downgrade
                 if word_level and sync_level == "line":
                     logger.info(
-                        f"Apple Music: word-level not available, "
-                        f"returning line-level"
+                        "Apple Music: word-level not available, "
+                        "returning line-level"
                     )
 
                 result = build_result(

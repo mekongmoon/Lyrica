@@ -100,7 +100,7 @@ async def _am_request(
             continue
 
         if response.status_code == 404:
-            logger.info(f"Apple Music: no lyrics found (404)")
+            logger.info("Apple Music: no lyrics found (404)")
             return None
 
         if response.status_code != 200:
