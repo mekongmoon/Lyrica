@@ -31,7 +31,7 @@ def trending():
             try:
                 country_enum = Country[country]
                 trending_songs = trending_engine.fetch_trending_songs(country_enum, limit)
-                
+
                 return jsonify({
                     "status": "success",
                     "data": {
@@ -55,7 +55,7 @@ def trending():
         elif countries_param:
             country_list = [c.strip().upper() for c in countries_param.split(",")]
             trending_data = {}
-            
+
             for c in country_list:
                 try:
                     country_enum = Country[c]

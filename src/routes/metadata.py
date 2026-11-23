@@ -54,7 +54,7 @@ def metadata():
         )
 
     logger.info(f"Metadata request for {artist} - {song}")
-    
+
     try:
         result = get_metadata_only(artist, song)
         if asyncio.iscoroutine(result):

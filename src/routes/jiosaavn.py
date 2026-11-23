@@ -19,7 +19,7 @@ bp = Blueprint("jiosaavn", __name__)
 def jiosaavn_search():
     """Search for songs on JioSaavn"""
     query = _sanitize_text(request.args.get("q", ""))
-    
+
     if not query:
         return (
             jsonify({
@@ -33,7 +33,7 @@ def jiosaavn_search():
         )
 
     logger.info(f"JioSaavn search query: {query}")
-    
+
     try:
         results = search_jiosaavn(query)
         if asyncio.iscoroutine(results):
@@ -70,7 +70,7 @@ def jiosaavn_search():
 def jiosaavn_play():
     """Get playable stream URL from JioSaavn"""
     song_link = _sanitize_text(request.args.get("songLink", ""), 2048)
-    
+
     if not song_link:
         return (
             jsonify({
@@ -84,12 +84,12 @@ def jiosaavn_play():
         )
 
     logger.info(f"JioSaavn play request for: {song_link}")
-    
+
     try:
         data = get_jiosaavn_stream(song_link)
         if asyncio.iscoroutine(data):
             data = run_async(data, timeout=30)
-        
+
         if not data or not isinstance(data, dict):
             return (
                 jsonify({
