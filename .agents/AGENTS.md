@@ -26,7 +26,17 @@ lyrica/
 ├── src/
 │   ├── __init__.py         # Package version (currently 1.5.0)
 │   ├── app.py              # Flask app factory (create_app) + top-level app instance for Vercel
-│   ├── router.py           # All route handlers
+│   ├── routes/             # Route handlers as Flask blueprints
+│   │   ├── __init__.py     # register_routes(app) — registers every blueprint
+│   │   ├── _helpers.py     # Shared request helpers (sanitizing, admin key, errors)
+│   │   ├── core.py         # /, /app, /favicon.ico
+│   │   ├── lyrics.py       # /lyrics/ (mood, metadata, translation/romanization)
+│   │   ├── metadata.py     # /metadata/, /suggestion
+│   │   ├── trending.py     # /trending/, /analytics/*
+│   │   ├── jiosaavn.py     # /api/jiosaavn/*
+│   │   └── admin.py        # /cache/*, /v2/proxy/*, /config/*
+│   ├── async_bridge.py     # run_async(): call async code from sync Flask views
+│   ├── router.py           # Backwards-compatibility shim (re-exports from routes/)
 │   ├── config.py           # Environment variable loading (REDIS_URL, GROQ_MODEL, tokens)
 │   ├── user_config.py      # .lyrica.config INI file parser
 │   ├── cache.py            # Multi-tier caching system (L1 Memory LRU, L2 Redis, L3 Disk)
@@ -132,7 +142,8 @@ lyrica/
 
 ### 1. Async Pattern & No Blocking Calls
 - All HTTP calls MUST use `httpx.AsyncClient` or shared connection pool
-- Use the `run_async()` helper in `router.py` to bridge sync Flask routes with async code
+- Use the `run_async()` helper in `src/async_bridge.py` to bridge sync Flask routes with async code
+- Add new endpoints to the matching blueprint in `src/routes/` (not `router.py`), and update `Test/test_route_map.py`
 - Never use `requests` or `bs4` anywhere in the codebase
 
 ### 2. Multi-Tier Caching System

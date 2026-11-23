@@ -4,7 +4,7 @@ from flask_cors import CORS
 from flask_compress import Compress
 from src.logger import get_logger
 from src import __version__
-from src.router import register_routes
+from src.routes import register_routes
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from werkzeug.middleware.proxy_fix import ProxyFix
