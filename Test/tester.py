@@ -33,6 +33,13 @@ DEFAULT_ADMIN_KEY = ""          # Set via --admin-key or edit here
 REQUEST_TIMEOUT   = 60          # seconds per request (Render cold start can be slow)
 REPORT_FILE       = "lyrica_debug_report.html"
 
+# Fast mode races sources in parallel and returns the first success, waiting
+# up to the server's fast_timeout (default 20s, see src/user_config.py).
+# Slow-but-successful responses are a WARN; only exceeding the server's own
+# limit (plus network round-trip headroom) is a FAIL.
+FAST_MODE_WARN_MS = 8_000
+FAST_MODE_FAIL_MS = 25_000
+
 # Test fixtures
 TEST_ARTIST  = "karan aujla"
 TEST_SONG    = "softly"
@@ -270,7 +277,12 @@ class LyricaTester:
             try:
                 j = r.json()
                 checks.append({"label": "status == success", "ok": j.get("status") == "success", "detail": str(j.get("status"))})
-                checks.append({"label": "Fast mode < 8s", "ok": ms < 8000, "detail": f"{ms:.0f}ms"})
+                checks.append({
+                    "label": f"Fast mode < {FAST_MODE_FAIL_MS // 1000}s (warn above {FAST_MODE_WARN_MS // 1000}s)",
+                    "ok": ms < FAST_MODE_FAIL_MS,
+                    "detail": f"{ms:.0f}ms",
+                    "warn": ms > FAST_MODE_WARN_MS,
+                })
             except Exception:
                 checks.append({"label": "Returns JSON", "ok": False, "detail": "Not valid JSON"})
         else:
