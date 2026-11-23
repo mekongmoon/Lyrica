@@ -1,8 +1,5 @@
 from flask import jsonify, request, render_template
 from datetime import datetime, timezone
-import os
-import re
-import hmac
 import asyncio
 import httpx as _httpx
 
@@ -17,7 +14,7 @@ from src.metadata_extractor import enhance_lyrics_with_metadata, get_metadata_on
 from src.sources.jiosaavan_fetcher import search_jiosaavn, get_jiosaavn_stream
 from src.trending_analytics import TrendingAnalyticsEngine, Country
 from src import __version__
-from src.config import ADMIN_KEY, GROQ_MODEL
+from src.config import GROQ_MODEL
 from src.groq_processor import process_lyrics
 from src.groq_key_manager import get_key_manager
 from src.translation_cache import (
@@ -27,14 +24,20 @@ from src.translation_cache import (
 )
 # Re-exported so existing imports from src.router keep working.
 from src.async_bridge import _close_thread_loops, run_async  # noqa: F401
+from src.routes._helpers import (  # noqa: F401
+    _IS_PRODUCTION,
+    _MAX_TEXT_LEN,
+    _admin_check,
+    _admin_key_ok,
+    _error_details,
+    _int_arg,
+    _sanitize_text,
+)
 
 logger = get_logger("router")
 
 # Initialize Trending Analytics Engine (global instance)
 trending_engine = TrendingAnalyticsEngine(cache_ttl_hours=24)
-
-_IS_PRODUCTION = os.getenv("LYRICA_ENV", "").lower() == "production"
-_MAX_TEXT_LEN = int(os.getenv("MAX_TEXT_LENGTH", "200"))
 
 
 # Shared blocking client for the one legacy sync endpoint (/suggestion).
@@ -44,43 +47,6 @@ _SUGGESTION_CLIENT = _httpx.Client(
     headers={"User-Agent": "Lyrica/1.5.0 (https://github.com/Wilooper/Lyrica)"},
     follow_redirects=True,
 )
-
-
-def _error_details(exc: BaseException) -> dict:
-    """Only expose raw exception text outside production.
-
-    Upstream exception messages can contain internal hostnames, tokens, or
-    filesystem paths. Clients still get the stable error envelope.
-    """
-    if _IS_PRODUCTION:
-        return {}
-    return {"details": str(exc)}
-
-
-def _admin_key_ok(key: str | None) -> bool:
-    """Constant-time admin key comparison."""
-    if not ADMIN_KEY or not key:
-        return False
-    return hmac.compare_digest(str(key), str(ADMIN_KEY))
-
-
-def _sanitize_text(value: str, max_len: int = _MAX_TEXT_LEN) -> str:
-    """Strip control characters and bound user-controlled text fields."""
-    value = re.sub(r"[\x00-\x1f\x7f]", " ", (value or "")).strip()
-    return value[:max_len]
-
-
-def _int_arg(name: str, default: int, minimum: int, maximum: int) -> int:
-    """Parse a bounded integer query parameter without ever raising a 500."""
-    raw = request.args.get(name)
-    if raw is None or raw == "":
-        return default
-    try:
-        value = int(raw)
-    except (TypeError, ValueError):
-        return default
-    return max(minimum, min(maximum, value))
-
 
 
 def register_routes(app):
@@ -1178,17 +1144,6 @@ def register_routes(app):
     def favicon():
         """Favicon endpoint"""
         return "", 204
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # Proxy management endpoints (admin-key protected)
-    # ─────────────────────────────────────────────────────────────────────────
-
-    def _admin_check():
-        """Return (True, None) if admin key is valid, else (False, response)."""
-        key = request.headers.get("X-ADMIN-KEY") or request.args.get("key")
-        if not _admin_key_ok(key):
-            return False, (jsonify({"status": "error", "error": {"message": "Unauthorized — admin key required"}}), 403)
-        return True, None
 
     @app.route("/v2/proxy/set", methods=["POST"])
     def proxy_set():
