@@ -1,7 +1,7 @@
 ## Note from dev in context to test results
 
-`Test_result.jpg` is an older run of `tester.py` against the Render deployment
-(30 passed, 1 failed, 1 warned). The one failure, "Lyrics Fast Mode", was a
+The last recorded run of `tester.py` against the Render deployment (2026-02-19)
+had 30 passed, 1 failed, 1 warned. The one failure, "Lyrics Fast Mode", was a
 timing check that was stricter than the server's own fast-mode timeout. It is
 now a warning above 8s and a failure only above 25s.
 
