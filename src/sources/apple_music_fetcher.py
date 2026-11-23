@@ -223,13 +223,13 @@ async def _am_resolve_storefront(
     url = f"{_PUBLIC_BASE_URL}/me/storefront"
     data = await _am_request(client, url, headers)
     if not data:
-        return _DEFAULT_STOREFRONT
+        return _resolve_storefront()
     storefronts = data.get("data") or []
     if storefronts and isinstance(storefronts[0], dict):
         sf = storefronts[0].get("id")
         if sf:
             return str(sf).lower()
-    return _DEFAULT_STOREFRONT
+    return _resolve_storefront()
 
 
 def _extract_ttml_from_response(body: dict) -> str | None:

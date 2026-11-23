@@ -47,6 +47,16 @@ def _finalize_event_loops():
 
 
 def pytest_collection_modifyitems(config, items):
+    # Live-network tests are opt-in so upstream outages and rate limits never
+    # make the default suite (or CI) red.
+    if os.getenv("LYRICA_RUN_INTEGRATION", "0") != "1":
+        skip_live = pytest.mark.skip(
+            reason="live integration test — set LYRICA_RUN_INTEGRATION=1 to enable"
+        )
+        for item in items:
+            if "integration" in item.keywords:
+                item.add_marker(skip_live)
+
     if _HAS_PYTEST_ASYNCIO:
         return
 

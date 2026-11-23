@@ -2,11 +2,14 @@ import asyncio
 import sys
 import os
 
+import pytest
+
 # Adjust import path to root
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from src.sources.lrcmux_fetcher import LrcmuxFetcher
 
+@pytest.mark.integration
 async def test_fetcher():
     fetcher = LrcmuxFetcher()
     
