@@ -507,14 +507,18 @@ def test_v1_view_cache_etag_and_304(client, registry):
     assert cached.status_code == 304
 
 
-def test_v1_word_request_falls_back_to_line_from_other_source(client, registry, monkeypatch):
-    """No word timing anywhere: v1 still returns line lyrics (see #40)."""
+def test_v1_word_request_falls_back_to_line_from_other_source(client, registry):
+    """No word timing anywhere: v1 still returns line lyrics (see #40).
+
+    The sequence is explicit because the route otherwise uses the config
+    default (IDs 1-8), of which only lrcmux exists in this fake registry.
+    """
     registry["lrcmux"] = _FakeFetcher(None)
     registry["fake"] = _FakeFetcher(_line_result("FallbackArtist", "FallbackSong"))
-    monkeypatch.setattr(fetch_controller, "_SOURCE_ORDER", ["lrcmux", "fake"])
 
     response = client.get(
-        "/lyrics/?artist=FallbackArtist&song=FallbackSong&timestamps=true&word=true"
+        "/lyrics/?artist=FallbackArtist&song=FallbackSong"
+        "&timestamps=true&word=true&sequence=lrcmux,fake"
     )
     body = response.get_json()
     assert body["status"] == "success"
