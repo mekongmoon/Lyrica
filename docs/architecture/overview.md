@@ -77,7 +77,7 @@ sequenceDiagram
     participant Groq as Groq LLM API
 
     Client->>Router: GET /lyrics/?artist=...&song=...&timestamps=true&translate=true
-    Router->>Cache: Lookup SHA-256 Key (v5)
+    Router->>Cache: Lookup SHA-256 Key (v6)
     alt Cache Hit (L1 / L2 / L3)
         Cache-->>Router: Return Cached Envelope (0.003ms)
         Router-->>Client: 200 OK (Instant Response)

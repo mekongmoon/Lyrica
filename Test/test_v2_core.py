@@ -14,7 +14,19 @@ import threading
 import time
 from unittest.mock import AsyncMock, MagicMock
 
+from src.cache import (
+    clear_cache,
+    load_from_cache,
+    load_raw,
+    load_view,
+    make_cache_key,
+    make_lyrics_cache_key,
+    make_view_cache_key,
+    save_raw,
+    save_view,
+)
 from src.core import providers
+from src.core.negative_cache import negative_cache
 from src.core.normalizer import normalize_identity
 from src.core.singleflight import singleflight
 from src.core.tiers import derive_view, detect_tier, to_lean
@@ -230,6 +242,52 @@ def test_lrclib_search_fallback_picks_best_candidate_not_first():
     result = asyncio.run(fetcher._fetch_with_client(MagicMock(), "Coldpaly", "Yellow", timestamps=False))
     assert result is not None and result["artist"] == "Coldplay"
     assert calls[1]["artist_name"] == "Coldplay"  # best match tried first
+
+
+# ── Cache: raw records and views ─────────────────────────────────────────────
+
+def test_raw_cache_key_ignores_view_flags():
+    a = make_lyrics_cache_key("The  Beatles", "Hey Jude", sequence=None)
+    b = make_lyrics_cache_key("the beatles", "hey jude", sequence=None)
+    assert a == b
+    # The rendered view key must still distinguish flags.
+    v1 = make_view_cache_key("The Beatles", "Hey Jude", timestamps=True)
+    v2 = make_view_cache_key("The Beatles", "Hey Jude", timestamps=False)
+    assert v1 != v2
+
+
+def test_v1_cache_key_ignores_fast_and_edition_noise():
+    """The v1 route still calls make_cache_key(artist, song, timestamps,
+    sequence, fast, mood, metadata, ...). fast only changes latency, so it
+    must not split the cache; edition suffixes map to the same song."""
+    base = make_cache_key("The Beatles", "Hey Jude", True, None, False, False, False)
+    assert make_cache_key("The Beatles", "Hey Jude", True, None, True, False, False) == base
+    assert make_cache_key("The Beatles", "Hey Jude (Remastered)", True, None, False, False, False) == base
+    assert make_cache_key("The Beatles", "Hey Jude", False, None, False, False, False) != base
+
+
+def test_raw_and_view_records_round_trip():
+    result = {"status": "success", "data": {"source": "fake", "lyrics": "a\nb"}}
+
+    raw_key = make_lyrics_cache_key("Round Trip Artist", "Raw Song")
+    save_raw(raw_key, result, tier="word")
+    assert load_raw(raw_key) == (result, "word")
+    # Old-style readers still see the plain result.
+    assert load_from_cache(raw_key) == result
+
+    view_key = make_view_cache_key("Round Trip Artist", "View Song", timestamps=True)
+    save_view(view_key, result)
+    loaded, body = load_view(view_key)
+    assert loaded == result
+    assert json.loads(body) == result
+
+
+def test_clear_cache_clears_negative_entries():
+    negative_cache.set("some-key", "not_found")
+    assert negative_cache.get("some-key") is not None
+    result = clear_cache()
+    assert negative_cache.get("some-key") is None
+    assert "negative_items_cleared" in result
 
 
 # ── Singleflight ─────────────────────────────────────────────────────────────
