@@ -1,0 +1,103 @@
+name: Benchmark
+
+# Production-like HTTP benchmark (#18): Gunicorn with gunicorn_production.py,
+# Redis for the L2 cache and rate-limit storage, Python 3.11 like the Docker
+# image. Measures cached endpoints, so the numbers reflect Lyrica itself, not
+# the upstream lyrics providers (their one cold request per song is reported
+# separately).
+
+on:
+  workflow_dispatch:
+    inputs:
+      requests:
+        description: "Requests per scenario"
+        default: "2000"
+      concurrency:
+        description: "Requests in flight"
+        default: "32"
+  pull_request:
+    paths:
+      - "scripts/benchmark_http.py"
+      - ".github/workflows/benchmark.yml"
+      - "gunicorn_production.py"
+
+concurrency:
+  group: benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Gunicorn + Redis benchmark
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      LYRICA_ENV: production
+      PORT: "7860"
+      REDIS_URL: redis://localhost:6379/0
+      RATE_LIMIT_STORAGE_URI: redis://localhost:6379/1
+      # Keep the limiter in the request path (Redis-backed, as in production)
+      # but high enough that a single-IP load test is not throttled.
+      RATE_LIMIT_DEFAULT: "1000000 per minute"
+      LOG_LEVEL: warning
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start Gunicorn (gunicorn_production.py)
+        run: |
+          gunicorn -c gunicorn_production.py run:app > gunicorn.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:7860/health > /dev/null; then echo "up after ${i}s"; break; fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:7860/health
+
+      - name: Run benchmark
+        run: |
+          {
+            echo "## Lyrica production benchmark"
+            echo
+            echo "Runner: $(nproc) vCPU, $(free -g | awk '/Mem:/{print $2}') GB RAM, $(python --version). Client and server share the runner."
+            echo "Server: Gunicorn \`gunicorn_production.py\`: $(python -c 'import os; print(min(os.cpu_count() * 2 + 1, 8))') gthread workers x 16 threads, access log on; Redis 7 for the L2 cache and rate limits (limiter active, limit raised)."
+            echo
+            python scripts/benchmark_http.py \
+              --requests "${{ inputs.requests || '2000' }}" \
+              --concurrency "${{ inputs.concurrency || '32' }}" \
+              --json benchmark.json | sed -n '/^Cache backend/,$p'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          # Steps run with `bash -eo pipefail`, so a failed scenario fails the step.
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            benchmark.json
+            gunicorn.log
+          if-no-files-found: ignore
+
+      - name: Show server log on failure
+        if: failure()
+        run: tail -n 100 gunicorn.log
