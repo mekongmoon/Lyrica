@@ -9,11 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Wilooper/Lyrica/actions/workflows/publish.yml"><img src="https://img.shields.io/github/actions/workflow/status/Wilooper/Lyrica/publish.yml?branch=main&label=CI%2FCD&logo=github" alt="CI/CD Status"></a>
-  <a href="https://github.com/Wilooper/Lyrica/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://github.com/mekongmoon/Lyrica/actions/workflows/publish.yml"><img src="https://img.shields.io/github/actions/workflow/status/mekongmoon/Lyrica/publish.yml?branch=main&label=CI%2FCD&logo=github" alt="CI/CD Status"></a>
+  <a href="https://github.com/mekongmoon/Lyrica/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-brightgreen.svg?logo=python" alt="Python Versions">
   <img src="https://img.shields.io/badge/docker-ready-2496ED.svg?logo=docker&logoColor=white" alt="Docker Ready">
-  <a href="https://wilooper.github.io/Lyrica/"><img src="https://img.shields.io/badge/docs-MkDocs%20Material-526CFE.svg?logo=materialformkdocs&logoColor=white" alt="Documentation"></a>
+  <a href="https://github.com/mekongmoon/Lyrica/tree/main/docs"><img src="https://img.shields.io/badge/docs-MkDocs%20Material-526CFE.svg?logo=materialformkdocs&logoColor=white" alt="Documentation"></a>
 </p>
 
 ---
@@ -66,7 +66,7 @@ Whether you are building a **karaoke player**, a **music streaming client**, an 
 The fastest way to run Lyrica with full L2 Redis distributed caching:
 
 ```bash
-git clone https://github.com/Wilooper/Lyrica.git
+git clone https://github.com/mekongmoon/Lyrica.git
 cd Lyrica
 cp .env.example .env
 docker compose up -d
@@ -77,7 +77,7 @@ The API is instantly live at **`http://localhost:7860/`**.
 ### 2. Run Locally with Python
 
 ```bash
-git clone https://github.com/Wilooper/Lyrica.git
+git clone https://github.com/mekongmoon/Lyrica.git
 cd Lyrica
 python -m venv venv
 source venv/bin/activate  # On Windows: .\venv\Scripts\Activate.ps1
