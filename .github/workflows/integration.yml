@@ -33,9 +33,9 @@ jobs:
       LYRICA_RUN_INTEGRATION: "1"
       GENIUS_TOKEN: ${{ secrets.GENIUS_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
