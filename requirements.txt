@@ -50,4 +50,4 @@ redis>=5.0.0                 # Redis client for L2 cache and rate limiting
 hiredis>=3.5.0               # C-based Redis parser — 10x faster (auto-detected by redis-py)
 
 # ── Concurrency worker for gunicorn (optional) ───────────────
-gevent>=24.2.1               # Greenlet-based high concurrency worker
+gevent>=26.9.0               # Greenlet-based high concurrency worker
