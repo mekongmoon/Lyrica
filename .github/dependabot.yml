@@ -1,0 +1,32 @@
+# Routine dependency updates. Security updates are opened separately by
+# Dependabot regardless of this schedule.
+version: 2
+updates:
+  # requirements.txt and requirements-dev.txt in the repository root
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      # One PR for all minor/patch bumps; major bumps get their own PR so
+      # breaking changes can be reviewed one at a time.
+      python-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "build(deps)"
+
+  # Actions used in .github/workflows/
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "ci(deps)"
