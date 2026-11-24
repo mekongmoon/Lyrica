@@ -74,6 +74,23 @@ Adds a `words` array to each line for dynamic word-by-word karaoke highlighting:
 ### 3. Syllable-Level (`timestamps=true&syllabus=true`)
 Provides sub-word syllable timing entries via Apple Music AMP API.
 
+### Fallback when the requested level is unavailable
+Word and syllable requests try the word-capable providers (Apple Music, Lrcmux) first. If none has that level for the song, the request falls back to line-level lyrics from all sources, so you get line timing rather than an error. Check `hasTimestamps` and whether lines contain `words` to see what was returned.
+
+---
+
+## Caching & Conditional Requests
+
+- **One fetch per song.** Lyrica stores the richest result it found for a song once, and serves every option combination (`timestamps`, `word`, `mood`, …) from it. Asking for plain lyrics after timed lyrics makes no new provider call.
+- **Identical concurrent requests** for an uncached song share a single provider fetch.
+- **Not-found results are remembered** for `LYRICA_NEGATIVE_TTL` seconds (default 3600), so repeated requests for a missing song return immediately. Clear with `POST /cache/clear` (admin).
+- **ETag / 304.** Every successful response carries an `ETag` header and an `X-Cache` header (`HIT` or `MISS`). Send the ETag back as `If-None-Match` to get an empty `304 Not Modified` when nothing changed:
+
+```bash
+curl -i "http://127.0.0.1:9999/lyrics/?artist=Coldplay&song=Yellow" \
+     -H 'If-None-Match: "<etag from the previous response>"'
+```
+
 ---
 
 ## AI Translation & Romanization

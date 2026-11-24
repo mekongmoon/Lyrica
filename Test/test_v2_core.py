@@ -57,6 +57,16 @@ class _FakeFetcher:
 
 
 @pytest.fixture()
+def client():
+    from src.app import create_app
+
+    app = create_app()
+    app.config["TESTING"] = True
+    app.config["RATELIMIT_ENABLED"] = False
+    return app.test_client()
+
+
+@pytest.fixture()
 def registry(monkeypatch):
     """Replace the provider registry with fakes (restored afterwards)."""
     saved = dict(ALL_FETCHERS)
@@ -405,6 +415,115 @@ def test_musixmatch_not_loaded_without_token():
     if os.getenv("MUSIXMATCH_TOKEN"):
         pytest.skip("MUSIXMATCH_TOKEN is set in this environment")
     assert "musixmatch" not in ALL_FETCHERS
+
+
+# ── v1 /lyrics/ on the raw cache ─────────────────────────────────────────────
+
+def test_missing_song_is_negative_cached(client, registry):
+    fake = _FakeFetcher(None)
+    registry["fake"] = fake
+
+    url = "/lyrics/?artist=NegCacheArtist&song=Missing&sequence=fake"
+    first = client.get(url)
+    assert first.status_code == 200
+    assert first.get_json()["status"] == "error"
+    assert fake.calls == 1
+
+    second = client.get(url)
+    assert second.status_code == 200
+    assert fake.calls == 1  # zero upstream calls on the second request
+
+
+def test_wrong_song_result_is_rejected_and_not_cached(client, registry):
+    wrong = _FakeFetcher({
+        "source": "fake",
+        "artist": "Someone Else",
+        "title": "A Different Song",
+        "lyrics": "completely unrelated words here",
+        "hasTimestamps": False,
+    })
+    registry["fake"] = wrong
+
+    artist, song = "WrongSongArtist", "Wanted Song"
+    response = client.get(f"/lyrics/?artist={artist}&song={song}&sequence=fake")
+    assert response.get_json()["status"] == "error"
+    assert wrong.calls == 1
+    assert load_raw(make_lyrics_cache_key(artist, song, "fake")) is None
+
+
+def test_one_raw_fetch_serves_plain_and_line_views(client, registry):
+    fake = _FakeFetcher(_line_result("CacheArtist", "CacheSong"))
+    registry["fake"] = fake
+
+    base = "/lyrics/?artist=CacheArtist&song=CacheSong&sequence=fake"
+    timed = client.get(base + "&timestamps=true")
+    assert timed.get_json()["data"]["hasTimestamps"] is True
+    assert fake.calls == 1
+
+    plain = client.get(base)
+    data = plain.get_json()["data"]
+    assert data["hasTimestamps"] is False
+    assert "timed_lyrics" not in data
+    assert data["lyrics"] == "line one\nline two"
+    assert fake.calls == 1  # the raw entry was derived, not refetched
+
+
+def test_100_concurrent_identical_requests_fetch_once(client, registry):
+    fake = _FakeFetcher(_line_result("StampedeArtist", "StampedeSong"), delay=0.2)
+    registry["fake"] = fake
+    url = "/lyrics/?artist=StampedeArtist&song=StampedeSong&sequence=fake&timestamps=true"
+    statuses: list[int] = []
+    lock = threading.Lock()
+
+    def worker():
+        local_client = client.application.test_client()
+        response = local_client.get(url)
+        with lock:
+            statuses.append(response.status_code)
+
+    threads = [threading.Thread(target=worker) for _ in range(100)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert fake.calls == 1
+    assert statuses == [200] * 100
+
+
+def test_v1_view_cache_etag_and_304(client, registry):
+    fake = _FakeFetcher(_line_result("EtagArtist", "EtagSong"))
+    registry["fake"] = fake
+    url = "/lyrics/?artist=EtagArtist&song=EtagSong&sequence=fake&timestamps=true"
+
+    first = client.get(url)
+    assert first.status_code == 200
+    assert first.headers["ETag"]
+    second = client.get(url)
+    assert second.headers.get("X-Cache") == "HIT"
+    assert second.get_json() == first.get_json()
+
+    cached = client.get(url, headers={"If-None-Match": first.headers["ETag"]})
+    assert cached.status_code == 304
+
+
+def test_v1_word_request_falls_back_to_line_from_other_source(client, registry):
+    """No word timing anywhere: v1 still returns line lyrics (see #40).
+
+    The sequence is explicit because the route otherwise uses the config
+    default (IDs 1-8), of which only lrcmux exists in this fake registry.
+    """
+    registry["lrcmux"] = _FakeFetcher(None)
+    registry["fake"] = _FakeFetcher(_line_result("FallbackArtist", "FallbackSong"))
+
+    response = client.get(
+        "/lyrics/?artist=FallbackArtist&song=FallbackSong"
+        "&timestamps=true&word=true&sequence=lrcmux,fake"
+    )
+    body = response.get_json()
+    assert body["status"] == "success"
+    assert body["data"]["source"] == "fake"
+    assert body["data"]["hasTimestamps"] is True
 
 
 # ── Singleflight ─────────────────────────────────────────────────────────────
