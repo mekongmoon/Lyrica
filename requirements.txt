@@ -17,7 +17,7 @@ gunicorn==27.0.1             # WSGI production server for Render / VPS / Linux
 httpx==0.28.1                # async HTTP with high-concurrency connection pooling
 
 # ── Ultra-fast JSON serialization ────────────────────────────
-orjson>=3.10.0               # C-based JSON parsing (5-10x faster than stdlib json)
+orjson>=3.13.0               # C-based JSON parsing (5-10x faster than stdlib json)
 
 # ── Response compression ─────────────────────────────────────
 flask-compress==1.26         # gzip all API responses (60-80% size reduction)
