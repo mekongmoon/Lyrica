@@ -19,6 +19,7 @@ This document details the architectural conventions, base URLs, authentication s
 ### Public Endpoints
 All consumer-facing endpoints do **not** require authentication:
 - `GET /lyrics/`
+- `GET /v2/lyrics`, `GET /v2/capabilities`, `GET /v2/health` (beta, see [v2 API](v2.md))
 - `GET /metadata/`
 - `GET /trending/`
 - `GET /suggestion`

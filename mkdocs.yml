@@ -59,6 +59,7 @@ nav:
   - API Reference:
       - Overview & Auth: api/overview.md
       - Lyrics API: api/lyrics.md
+      - v2 API (beta): api/v2.md
       - Metadata & Trending: api/metadata-trending.md
       - Administration: api/administration.md
   - Architecture:
