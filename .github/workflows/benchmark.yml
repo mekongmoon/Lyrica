@@ -74,6 +74,10 @@ jobs:
           curl -sf http://127.0.0.1:7860/health
 
       - name: Run benchmark
+        # Explicit `shell: bash` gives `bash -eo pipefail`; the default for an
+        # unspecified shell is plain `bash -e`, which would hide a failing
+        # benchmark behind the `| tee`.
+        shell: bash
         run: |
           {
             echo "## Lyrica production benchmark"
@@ -86,7 +90,6 @@ jobs:
               --concurrency "${{ inputs.concurrency || '32' }}" \
               --json benchmark.json | sed -n '/^Cache backend/,$p'
           } | tee -a "$GITHUB_STEP_SUMMARY"
-          # Steps run with `bash -eo pipefail`, so a failed scenario fails the step.
 
       - name: Upload results
         if: always()
