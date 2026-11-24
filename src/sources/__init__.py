@@ -17,7 +17,7 @@ Source status (as of 2026-07-26):
                     all layers route through Webshare rotating proxy
     netease      — via syncedlyrics; synced LRC, large catalog
     megalobiz    — via syncedlyrics; synced LRC, user-contributed
-    musixmatch   — via syncedlyrics; optional MUSIXMATCH_TOKEN env var
+    musixmatch   — via syncedlyrics; loaded only when MUSIXMATCH_TOKEN is set
     lrcmux       — api.lrcmux.dev aggregator (Deezer/KuGou/YT Music); line & word-level sync, no token
     apple_music  — requires APPLE_MUSIC_DEVELOPER_TOKEN (syllable/word/line sync)
 
@@ -46,8 +46,15 @@ _try_import("lrclib",     "src.sources.lrclib_fetcher",      "LRCLIBFetcher")
 _try_import("youtube",    "src.sources.youtube_fetcher",     "YoutubeFetcher")
 _try_import("netease",    "src.sources.netease_fetcher",     "NetEaseFetcher")
 _try_import("megalobiz",  "src.sources.megalobiz_fetcher",   "MegalobizFetcher")
-_try_import("musixmatch", "src.sources.musixmatch_fetcher",  "MusixmatchFetcher")
 _try_import("lrcmux",     "src.sources.lrcmux_fetcher",      "LrcmuxFetcher")
+
+# ── Musixmatch (requires a token) ────────────────────────────────────────────
+# The unauthenticated endpoint returns 401, so do not even instantiate the
+# fetcher unless the operator supplied MUSIXMATCH_TOKEN.
+if os.getenv("MUSIXMATCH_TOKEN"):
+    _try_import("musixmatch", "src.sources.musixmatch_fetcher", "MusixmatchFetcher")
+else:
+    logger.info("Musixmatch fetcher skipped (set MUSIXMATCH_TOKEN to enable)")
 
 # ── Apple Music (requires developer token) ───────────────────────────────────
 # Only loaded when APPLE_MUSIC_DEVELOPER_TOKEN or DEVELOPER_TOKEN is set.

@@ -29,7 +29,14 @@ _UA = "Lyrica/1.0 (https://github.com/Wilooper/Lyrica)"
 class LrcmuxFetcher(BaseFetcher):
     source_name = "lrcmux"
 
-    async def fetch(self, artist: str, song: str, timestamps: bool = False, word_level: bool = False):
+    async def fetch(
+        self,
+        artist: str,
+        song: str,
+        timestamps: bool = False,
+        word_level: bool = False,
+        syllabus: bool = False,
+    ):
         """
         Fetch lyrics from lrcmux.
 
@@ -39,6 +46,11 @@ class LrcmuxFetcher(BaseFetcher):
             timestamps: If True, include synchronized timed lyrics
             word_level: If True (and timestamps=True), request word-level sync.
                         If False (default), request line-level sync.
+            syllabus:   Accepted for interface compatibility and ignored:
+                        lrcmux has no syllable-level timing. The fetch
+                        controller passes it to every word-capable provider;
+                        without this parameter every lrcmux call raised
+                        TypeError.
         """
         proxy = get_proxy_manager().get_next()
         transport = httpx.AsyncHTTPTransport(retries=3)

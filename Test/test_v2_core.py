@@ -9,11 +9,16 @@ ported (#12). No network access is required.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
+import os
 import threading
 import time
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
+import src.fetch_controller as fetch_controller
 from src.cache import (
     clear_cache,
     load_from_cache,
@@ -31,8 +36,41 @@ from src.core.normalizer import normalize_identity
 from src.core.singleflight import singleflight
 from src.core.tiers import derive_view, detect_tier, to_lean
 from src.core.verifier import verify_result
+from src.sources import ALL_FETCHERS
+from src.sources.apple_music_fetcher import AppleMusicFetcher
 from src.sources.base_fetcher import parse_lrc
 from src.sources.lrclib_fetcher import LRCLIBFetcher
+from src.sources.lrcmux_fetcher import LrcmuxFetcher
+
+
+class _FakeFetcher:
+    def __init__(self, result=None, delay: float = 0.0):
+        self.result = result
+        self.delay = delay
+        self.calls = 0
+
+    async def fetch(self, artist, song, timestamps=False, **kwargs):
+        self.calls += 1
+        if self.delay:
+            await asyncio.sleep(self.delay)
+        return self.result
+
+
+@pytest.fixture()
+def registry(monkeypatch):
+    """Replace the provider registry with fakes (restored afterwards)."""
+    saved = dict(ALL_FETCHERS)
+    ALL_FETCHERS.clear()
+    monkeypatch.setattr(fetch_controller, "_SOURCE_ORDER", ["fake"])
+    providers.reset()
+    negative_cache.clear()
+    try:
+        yield ALL_FETCHERS
+    finally:
+        ALL_FETCHERS.clear()
+        ALL_FETCHERS.update(saved)
+        providers.reset()
+        negative_cache.clear()
 
 
 def _line_result(artist="Test Artist", title="Test Song"):
@@ -288,6 +326,85 @@ def test_clear_cache_clears_negative_entries():
     result = clear_cache()
     assert negative_cache.get("some-key") is None
     assert "negative_items_cleared" in result
+
+
+# ── Fetch controller ─────────────────────────────────────────────────────────
+
+def _phase_sources(monkeypatch, **controller_kwargs):
+    """Run the controller with three fakes and return each phase's sources."""
+    ALL_FETCHERS["lrcmux"] = _FakeFetcher(None)
+    ALL_FETCHERS["lrclib"] = _FakeFetcher(None)
+    ALL_FETCHERS["genius"] = _FakeFetcher(None)
+    monkeypatch.setattr(fetch_controller, "_SOURCE_ORDER", ["lrclib", "lrcmux", "genius"])
+
+    seen: list[list[str]] = []
+
+    async def fake_try_phase(phase, *args, **kwargs):
+        seen.append(list(phase["sources"]))
+        return None
+
+    monkeypatch.setattr(fetch_controller, "_try_phase", fake_try_phase)
+    asyncio.run(fetch_controller.fetch_lyrics_controller(
+        "WordArtist", "WordSong", timestamps=True, word_level=True, **controller_kwargs
+    ))
+    return seen
+
+
+def test_word_sync_restricted_to_word_capable_providers(registry, monkeypatch):
+    seen = _phase_sources(monkeypatch, restrict_word_sources=True)
+    assert seen
+    assert all(set(sources) <= {"lrcmux", "apple_music"} for sources in seen)
+
+
+def test_word_request_keeps_line_fallback_by_default(registry, monkeypatch):
+    """v1 behaviour: a word request still ends with a line-level phase across
+    all sources, so songs without word timing get line lyrics, not 404."""
+    seen = _phase_sources(monkeypatch)
+    assert seen[0] == ["lrcmux"]  # word-capable providers first
+    assert seen[-1] == ["lrclib", "lrcmux", "genius"]  # then everyone, line level
+
+
+def test_controller_rejects_wrong_song(registry):
+    ALL_FETCHERS["fake"] = _FakeFetcher({
+        "source": "fake", "artist": "Ed Sheeran", "title": "Shape of You",
+        "lyrics": "The club isn't the best place to find a lover",
+    })
+    meta: dict = {}
+    result = asyncio.run(fetch_controller.fetch_lyrics_controller("Talwiinder", "Nasha", meta=meta))
+    assert result["status"] == "error"
+    assert meta["outcome"] == "rejected"
+    assert meta["rejected"][0]["provider"] == "fake"
+
+
+def test_controller_skips_provider_with_open_breaker(registry):
+    fake = _FakeFetcher({"source": "fake", "artist": "A", "title": "T", "lyrics": "x\ny\nz"})
+    ALL_FETCHERS["fake"] = fake
+    state = providers.get_state("fake")
+    for _ in range(5):
+        state.record_failure("boom")
+
+    meta: dict = {}
+    result = asyncio.run(fetch_controller.fetch_lyrics_controller("A", "T", meta=meta))
+    assert result["status"] == "error"
+    assert fake.calls == 0
+    assert meta["outcome"] == "incomplete"
+    assert meta["skipped"][0]["reason"] == "breaker_open"
+
+
+@pytest.mark.parametrize("fetcher_cls", [LrcmuxFetcher, AppleMusicFetcher])
+def test_word_capable_fetchers_accept_controller_kwargs(fetcher_cls):
+    """The controller calls lrcmux and Apple Music with word_level= and
+    syllabus=. lrcmux used to lack syllabus, so every call raised TypeError
+    and the source silently never worked through the API."""
+    inspect.signature(fetcher_cls.fetch).bind(
+        None, "Artist", "Song", timestamps=True, word_level=True, syllabus=False
+    )
+
+
+def test_musixmatch_not_loaded_without_token():
+    if os.getenv("MUSIXMATCH_TOKEN"):
+        pytest.skip("MUSIXMATCH_TOKEN is set in this environment")
+    assert "musixmatch" not in ALL_FETCHERS
 
 
 # ── Singleflight ─────────────────────────────────────────────────────────────
