@@ -32,6 +32,8 @@ jobs:
     env:
       LYRICA_RUN_INTEGRATION: "1"
       GENIUS_TOKEN: ${{ secrets.GENIUS_TOKEN }}
+      # Optional: enables the Apple Music source and the live syllable-tier test.
+      APPLE_MUSIC_DEVELOPER_TOKEN: ${{ secrets.APPLE_MUSIC_DEVELOPER_TOKEN }}
     steps:
       - uses: actions/checkout@v7
 
