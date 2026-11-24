@@ -1,22 +1,26 @@
 """Unit tests for the Lyrica v2 core building blocks (src/core/).
 
 Ported from the v2-beta suite (Test/test_v2_core.py on upstream
-v2-beta-rollout). Only the tests that exercise src/core/ on its own are
-here; tests for the cache, fetch controller and /v2 routes are added as
-those parts are ported (#12). No network access is required.
+v2-beta-rollout), plus tests for the LRC parser and LRCLIB fetcher. Tests
+for the cache, fetch controller and /v2 routes are added as those parts are
+ported (#12). No network access is required.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import threading
 import time
+from unittest.mock import AsyncMock, MagicMock
 
 from src.core import providers
 from src.core.normalizer import normalize_identity
 from src.core.singleflight import singleflight
 from src.core.tiers import derive_view, detect_tier, to_lean
 from src.core.verifier import verify_result
+from src.sources.base_fetcher import parse_lrc
+from src.sources.lrclib_fetcher import LRCLIBFetcher
 
 
 def _line_result(artist="Test Artist", title="Test Song"):
@@ -142,6 +146,90 @@ def test_lean_word_and_syllable_nesting():
     assert (start, text) == (1000, "line one")
     assert words[0][1] == "line"
     assert words[0][2][0][1] == "li"
+
+
+# ── LRC parser / LRCLIB fetcher ──────────────────────────────────────────────
+
+def test_parse_lrc_multiple_tags_offset_and_sorting():
+    lrc = "[ar:Artist]\n[offset:500]\n[00:01.00][00:10.50]Chorus\n[00:05.2]Verse"
+    parsed = parse_lrc(lrc)
+    assert [entry["start_time"] for entry in parsed] == [1500, 5700, 11000]
+    assert parsed[0]["end_time"] == 5700
+    assert parsed[-1]["end_time"] == 15000  # last line start + 4s
+
+
+def test_parse_lrc_repeated_tags_do_not_leak_into_text():
+    parsed = parse_lrc("[00:10.00][01:20.00]Chorus line")
+    assert [(e["start_time"], e["text"]) for e in parsed] == [
+        (10000, "Chorus line"),
+        (80000, "Chorus line"),
+    ]
+
+
+def _lrclib_fetcher(data_by_artist):
+    """LRCLIBFetcher whose /api/get returns data only for known artists."""
+    fetcher = LRCLIBFetcher()
+    calls = []
+
+    async def fake_get(client, params):
+        calls.append(params)
+        return data_by_artist.get(params.get("artist_name"))
+
+    fetcher._get = fake_get
+    fetcher._search = AsyncMock(return_value=[])
+    return fetcher, calls
+
+
+def test_lrclib_plain_request_strips_timestamps():
+    """A plain request (timestamps=False) with only syncedLyrics must strip tags."""
+    fetcher, _ = _lrclib_fetcher({"Test": {
+        "artistName": "Test",
+        "trackName": "Song",
+        "duration": 30,
+        "syncedLyrics": "[00:01.00]Hello world\n[00:05.00]Second line",
+        "plainLyrics": None,
+        "instrumental": False,
+    }})
+
+    result = asyncio.run(fetcher._fetch_with_client(MagicMock(), "Test", "Song", timestamps=False))
+    assert result is not None
+    assert result["hasTimestamps"] is False
+    assert "timed_lyrics" not in result
+    assert result["lyrics"] == "Hello world\nSecond line"
+
+
+def test_lrclib_timed_request_has_clean_text_and_real_duration():
+    """lyrics is plain text (no LRC tags); the last line ends at the song's end.
+
+    LRCLIB reports duration in seconds. It used to be passed to parse_lrc as
+    milliseconds, so the last line of a 30 s song "ended" at 30 ms.
+    """
+    fetcher, _ = _lrclib_fetcher({"Test": {
+        "artistName": "Test",
+        "trackName": "Song",
+        "duration": 30,
+        "syncedLyrics": "[00:01.00]Hello world\n[00:05.00]Second line",
+        "plainLyrics": None,
+    }})
+
+    result = asyncio.run(fetcher._fetch_with_client(MagicMock(), "Test", "Song", timestamps=True))
+    assert result["hasTimestamps"] is True
+    assert result["lyrics"] == "Hello world\nSecond line"
+    assert result["timed_lyrics"][-1]["end_time"] == 30000
+
+
+def test_lrclib_search_fallback_picks_best_candidate_not_first():
+    good = {"artistName": "Coldplay", "trackName": "Yellow", "plainLyrics": "Look at the stars"}
+    fetcher, calls = _lrclib_fetcher({"Coldplay": good})
+    # Exact lookup misses (requested artist is misspelled), so search runs.
+    fetcher._search = AsyncMock(return_value=[
+        {"trackName": "Yellow Submarine", "artistName": "The Beatles"},
+        {"trackName": "Yellow", "artistName": "Coldplay"},
+    ])
+
+    result = asyncio.run(fetcher._fetch_with_client(MagicMock(), "Coldpaly", "Yellow", timestamps=False))
+    assert result is not None and result["artist"] == "Coldplay"
+    assert calls[1]["artist_name"] == "Coldplay"  # best match tried first
 
 
 # ── Singleflight ─────────────────────────────────────────────────────────────

@@ -114,7 +114,8 @@ def split_artists(artist_str: str) -> list:
 def extract_artist_song_from_result(result: dict) -> tuple:
     """Return (list[str], str) — normalised artist names and song title."""
     artist = (result.get("artist") or result.get("artists") or
-              result.get("artist_name") or result.get("trackArtist"))
+              result.get("artist_name") or result.get("artistName") or
+              result.get("trackArtist"))
     song = (result.get("song") or result.get("song_title") or
             result.get("title") or result.get("name") or result.get("trackName"))
 
