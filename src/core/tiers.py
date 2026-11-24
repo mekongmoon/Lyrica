@@ -181,10 +181,17 @@ def to_lean(
 
     payload: dict = {"v": 2}
     if not lite:
-        payload["src"] = data.get("source") or data.get("src")
+        # Contract: optional fields are omitted rather than sent as null.
+        src = data.get("source") or data.get("src")
+        if src:
+            payload["src"] = src
         payload["tier"] = actual_tier
-        payload["artist"] = data.get("artist")
-        payload["title"] = data.get("title") or data.get("song")
+        artist = data.get("artist")
+        if artist:
+            payload["artist"] = artist
+        title = data.get("title") or data.get("song")
+        if title:
+            payload["title"] = title
         duration = data.get("duration")
         if isinstance(duration, (int, float)) and duration > 0:
             payload["dur"] = int(duration * 1000) if duration < 10000 else int(duration)
@@ -222,12 +229,10 @@ def to_lean(
             lines.append([start, text, words_out])
         payload["lines"] = lines
 
-    if data.get("translation_metadata"):
-        payload["tr"] = data["translation_metadata"]
-    if data.get("translated_lyrics"):
-        payload["tr_text"] = data["translated_lyrics"]
-    if data.get("romanized_lyrics"):
-        payload["rom_text"] = data["romanized_lyrics"]
+    # Translation/romanization are added by the /v2 route as "tr" / "rom"
+    # (lists aligned with the lines). Raw cache entries never contain v1
+    # translation fields (derive_view deep-copies), so none are mapped here;
+    # that keeps "tr" to a single meaning.
 
     if fields:
         # ``v`` and ``tier`` are part of the protocol and always survive.
