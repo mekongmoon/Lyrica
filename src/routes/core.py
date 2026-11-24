@@ -214,13 +214,13 @@ def home():
                 }
             },
             "fetchers": {
-                "1": "Genius (requires GENIUS_TOKEN)",
+                "1": "Genius (optional GENIUS_TOKEN; falls back to public search)",
                 "2": "LRCLIB",
                 "3": "YouTube Music (3-layer: ytmusicapi [authenticated] / transcript-api / yt-dlp)",
                 "4": "NetEase (via syncedlyrics, synced LRC)",
-                "5": "Megallobiz (via syncedlyrics, synced LRC)",
-                "6": "Musixmatch (via syncedlyrics, optional MUSIXMATCH_TOKEN)",
-                "7": "Lrcmux (via api.lrcmux.dev, Musixmatch lyrics; supports word-level sync with &word=true)",
+                "5": "Megalobiz (via syncedlyrics, synced LRC)",
+                "6": "Musixmatch (via syncedlyrics; requires MUSIXMATCH_TOKEN, otherwise skipped)",
+                "7": "Lrcmux (via api.lrcmux.dev: Deezer, KuGou and YouTube Music lyrics; supports word-level sync with &word=true)",
                 "8": "Apple Music (requires APPLE_MUSIC_DEVELOPER_TOKEN; syllable-level with &syllabus=true, word-level with &word=true)",
             }
         }
