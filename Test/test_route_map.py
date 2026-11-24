@@ -39,6 +39,9 @@ EXPECTED_ROUTES = {
     ("/v2/proxy/clear", ("POST",), "proxy_clear"),
     ("/config/status", ("GET",), "config_status"),
     ("/config/reload", ("POST",), "config_reload"),
+    ("/v2/lyrics", ("GET",), "v2_lyrics"),
+    ("/v2/capabilities", ("GET",), "v2_capabilities"),
+    ("/v2/health", ("GET",), "v2_health"),
 }
 
 

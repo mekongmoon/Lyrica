@@ -2,6 +2,7 @@
 
     core      /, /app, /favicon.ico
     lyrics    /lyrics/  (incl. mood, metadata, translation/romanization)
+    v2        /v2/lyrics, /v2/capabilities, /v2/health
     metadata  /metadata/, /suggestion
     trending  /trending/, /analytics/*
     jiosaavn  /api/jiosaavn/*
@@ -10,11 +11,12 @@
 /health, /health/ready and /admin/cache/* are registered in src/app.py.
 """
 
-from src.routes import admin, core, jiosaavn, lyrics, metadata, trending
+from src.routes import admin, core, jiosaavn, lyrics, metadata, trending, v2
 
 BLUEPRINTS = (
     core.bp,
     lyrics.bp,
+    v2.bp,
     metadata.bp,
     trending.bp,
     jiosaavn.bp,

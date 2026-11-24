@@ -526,6 +526,126 @@ def test_v1_word_request_falls_back_to_line_from_other_source(client, registry):
     assert body["data"]["hasTimestamps"] is True
 
 
+# ── /v2 routes ───────────────────────────────────────────────────────────────
+
+def test_concurrent_missing_song_gets_consistent_not_found(client, registry):
+    fake = _FakeFetcher(None, delay=0.2)
+    registry["fake"] = fake
+    url = "/v2/lyrics?artist=ConcurrentMissing&song=Nothing"
+    codes: list[int] = []
+    lock = threading.Lock()
+
+    def worker():
+        response = client.application.test_client().get(url)
+        with lock:
+            codes.append(response.status_code)
+
+    threads = [threading.Thread(target=worker) for _ in range(20)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert fake.calls == 1
+    assert codes == [404] * 20
+
+
+def test_lower_tier_upgrade_does_not_overwrite_richer_cache(client, registry, monkeypatch):
+    artist, song = "MonotonicArtist", "MonotonicSong"
+    key = make_lyrics_cache_key(artist, song)
+    save_raw(key, {"status": "success", "data": _line_result(artist, song)}, "line")
+
+    # A word request reaches lrcmux, which only returns plain text here.
+    plain = {
+        "source": "fake",
+        "artist": artist,
+        "title": song,
+        "lyrics": "plain only lyrics that are long enough",
+        "hasTimestamps": False,
+    }
+    registry["lrcmux"] = _FakeFetcher(plain)
+    monkeypatch.setattr(fetch_controller, "_SOURCE_ORDER", ["lrcmux"])
+
+    response = client.get(f"/v2/lyrics?artist={artist}&song={song}&tier=word")
+    assert response.status_code == 200
+    assert response.get_json()["tier"] == "line"
+    assert registry["lrcmux"].calls >= 1  # the upgrade was really attempted
+    cached = load_raw(key)
+    assert cached is not None and cached[1] == "line"
+
+
+def test_v2_lean_payload_and_tier_guard(client, registry):
+    artist, song = "V2Artist", "V2Song"
+    result = {"status": "success", "data": _line_result(artist, song)}
+    save_raw(make_lyrics_cache_key(artist, song), result, "line")
+
+    response = client.get(f"/v2/lyrics?artist={artist}&song={song}&tier=line")
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["v"] == 2
+    assert payload["tier"] == "line"
+    assert payload["lines"][0] == [1000, "line one"]
+    assert "timed_lyrics" not in payload
+    assert response.headers["ETag"]
+
+    not_modified = client.get(
+        f"/v2/lyrics?artist={artist}&song={song}&tier=line",
+        headers={"If-None-Match": response.headers["ETag"]},
+    )
+    assert not_modified.status_code == 304
+
+    # A plain-only cached entry cannot satisfy a word request unless allowed.
+    plain_artist, plain_song = "V2PlainArtist", "V2PlainSong"
+    plain = {"status": "success", "data": {
+        "source": "fake", "artist": plain_artist, "title": plain_song, "lyrics": "a\nb",
+    }}
+    save_raw(make_lyrics_cache_key(plain_artist, plain_song), plain, "plain")
+    registry["fake"] = _FakeFetcher(None)
+    blocked = client.get(
+        f"/v2/lyrics?artist={plain_artist}&song={plain_song}&tier=word&allow_lower=false"
+    )
+    assert blocked.status_code == 404
+    assert blocked.get_json()["err"] == "tier_unavailable"
+
+    # The failed upgrade is remembered briefly; no repeated upstream call.
+    client.get(
+        f"/v2/lyrics?artist={plain_artist}&song={plain_song}&tier=word&allow_lower=false"
+    )
+    assert registry["fake"].calls == 1
+
+
+def test_v2_rejects_bad_input(client):
+    missing = client.get("/v2/lyrics?artist=OnlyArtist")
+    assert missing.status_code == 400
+    assert missing.get_json() == {"err": "missing_artist_or_song"}
+
+    bad_tier = client.get("/v2/lyrics?artist=A&song=B&tier=karaoke")
+    assert bad_tier.status_code == 400
+    assert bad_tier.get_json()["err"] == "bad_tier"
+
+
+def test_v2_capabilities_match_server_behaviour(client):
+    caps = client.get("/v2/capabilities").get_json()
+    assert caps["v"] == 2
+    assert caps["tiers"] == ["plain", "line", "word", "syllable"]
+    assert caps["providers"] == sorted(ALL_FETCHERS)
+
+    # The compression flag must describe what the server actually does.
+    index = client.get("/", headers={"Accept-Encoding": "gzip"})
+    compressed = index.headers.get("Content-Encoding") == "gzip"
+    assert caps["compression"] is compressed
+
+
+def test_v2_health_reports_providers_and_hides_cache_dir(client):
+    providers.reset()
+    providers.get_state("health-probe").record_failure("boom")
+    health = client.get("/v2/health").get_json()
+    assert health["v"] == 2 and health["status"] == "ok"
+    assert "health-probe" in health["providers"]
+    assert {"singleflight", "negative_cache", "cache"} <= set(health)
+    assert "cache_dir" not in health["cache"]
+
+
 # ── Singleflight ─────────────────────────────────────────────────────────────
 
 def test_singleflight_runs_leader_once():
