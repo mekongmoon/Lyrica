@@ -154,7 +154,7 @@ lyrica/
 - Tier 1: In-Memory LRU (microsecond response for hot items)
 - Tier 2: Redis (`REDIS_URL`) with TTL and namespace isolation (`lyrica:lyrics:*`, `lyrica:trans:*`)
 - Tier 3: Disk JSON (`cache_data/`) fallback
-- Cache keys are SHA-256 hashes of JSON payload containing all relevant parameters (`CACHE_VERSION = "v5"`)
+- Cache keys are SHA-256 hashes of JSON payload containing all relevant parameters (`CACHE_VERSION = "v6"`); raw entries per song plus rendered views (see docs/architecture/caching.md)
 
 ### 3. Response Shape
 - All API responses follow: `{"status": "success"|"error", "data": {...}}` or `{"status": "error", "error": {"message": "...", "timestamp": "..."}}`

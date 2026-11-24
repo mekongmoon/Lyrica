@@ -8,7 +8,7 @@ Lyrica employs a 3-tier caching system designed to minimize external provider qu
 
 ```mermaid
 graph TD
-    Query[Incoming Request] --> Key["Generate SHA-256 Key (v5)"]
+    Query[Incoming Request] --> Key["Generate SHA-256 Key (v6)"]
     Key --> L1{"L1: In-Memory LRU<br/>(Capacity: 5000 in prod)"}
 
     L1 -- Hit (~0.0003 ms) --> Return[Return Response]
@@ -39,18 +39,25 @@ graph TD
 
 ---
 
-## Cache Key Formulation (`CACHE_VERSION = "v5"`)
+## Cache Key Formulation (`CACHE_VERSION = "v6"`)
 
-Cache keys are deterministic **SHA-256 hashes** computed over a canonical JSON object:
+Cache keys are deterministic **SHA-256 hashes** computed over a canonical JSON object. There are two kinds of entry:
+
+| Kind | Key function | Contains | Key ignores |
+|---|---|---|---|
+| **raw** | `make_lyrics_cache_key()` | The richest result fetched for a song, plus its tier (`plain`, `line`, `word`, `syllable`) | All view flags: one song, one raw entry |
+| **view** | `make_view_cache_key()` (v1's `make_cache_key()` is an alias) | A fully rendered response, plus its pre-serialized JSON body | `fast` (it changes latency, not content) |
 
 ```python
+# view key payload
 payload = {
-    "v": "v5",
-    "artist": "coldplay",
-    "song": "yellow",
+    "v": "v6",
+    "kind": "view",
+    "artist": "coldplay",   # normalize_identity(): lower-case, whitespace collapsed,
+    "song": "yellow",       # edition noise like "(Remastered)" or "- Live" removed
+    "sequence": "",         # default provider order normalizes to ""
+    "pass": False,
     "timestamps": True,
-    "sequence": "",
-    "fast": False,
     "mood": False,
     "metadata": False,
     "translate": False,
@@ -62,9 +69,16 @@ payload = {
 ```
 
 This guarantees:
-1. **Collision Immunity**: Changing any flag (`timestamps`, `word_level`, `syllabus`, `translate`, `language`) produces a completely unique cache key.
-2. **Filesystem Safety**: Hashes are hex strings, avoiding invalid directory characters across operating systems.
-3. **Redis Namespace Isolation**: Keys are stored in Redis under the `lyrica:lyrics:<hash>` namespace.
+1. **Collision Immunity**: Changing any content flag (`timestamps`, `word_level`, `syllabus`, `translate`, `language`, …) produces a different view key.
+2. **Shared Song Identity**: `"The  Beatles"` / `"the beatles"` and `"Hey Jude"` / `"Hey Jude (Remastered)"` map to the same key.
+3. **Filesystem Safety**: Hashes are hex strings, avoiding invalid directory characters across operating systems.
+4. **Redis Namespace Isolation**: Keys are stored in Redis under the `lyrica:lyrics:<hash>` namespace.
+
+Bumping `CACHE_VERSION` from `v5` to `v6` changes every key, so entries written by older versions are simply never read again and expire on their own.
+
+### Negative cache
+
+Misses (no provider had the song) can be remembered for `LYRICA_NEGATIVE_TTL` seconds (default 3600) by `src/core/negative_cache.py`, in memory or Redis. `clear_cache()` clears it too, and `cache_stats()` reports it under `negative`.
 
 ---
 

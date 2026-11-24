@@ -64,7 +64,13 @@ GET /cache/stats
   "disk_l3_files": 128,
   "cache_files": 128,
   "ttl_seconds": 604800,
-  "version": "v5"
+  "version": "v6",
+  "negative": {
+    "entries": 0,
+    "hits": 0,
+    "writes": 0,
+    "ttl_seconds": 3600
+  }
 }
 ```
 
