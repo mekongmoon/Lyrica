@@ -12,6 +12,7 @@ import asyncio
 import inspect
 import json
 import os
+import re
 import threading
 import time
 from unittest.mock import AsyncMock, MagicMock
@@ -644,6 +645,141 @@ def test_v2_health_reports_providers_and_hides_cache_dir(client):
     assert "health-probe" in health["providers"]
     assert {"singleflight", "negative_cache", "cache"} <= set(health)
     assert "cache_dir" not in health["cache"]
+
+
+# ── v2 response contract (frozen for v2.0.0, see docs/api/v2.md) ────────────
+#
+# These tests pin the exact v2 payloads. If one fails, the change breaks
+# existing v2 clients: after v2.0.0 that requires a v3, not a test update.
+
+def _line_payload_source():
+    return {"status": "success", "data": _line_result()}
+
+
+def test_contract_line_payload():
+    assert to_lean(_line_payload_source(), "line") == {
+        "v": 2,
+        "src": "fake",
+        "tier": "line",
+        "artist": "Test Artist",
+        "title": "Test Song",
+        "dur": 30000,
+        "lines": [[1000, "line one"], [5000, "line two"]],
+    }
+
+
+def test_contract_plain_payload_uses_text():
+    assert to_lean(_line_payload_source(), "plain") == {
+        "v": 2,
+        "src": "fake",
+        "tier": "plain",
+        "artist": "Test Artist",
+        "title": "Test Song",
+        "dur": 30000,
+        "text": "line one\nline two",
+    }
+
+
+def test_contract_word_and_syllable_payloads():
+    word_source = {"status": "success", "data": _word_result()}
+    assert to_lean(word_source, "word") == {
+        "v": 2,
+        "src": "fake",
+        "tier": "word",
+        "artist": "Test Artist",
+        "title": "Test Song",
+        "lines": [[1000, "line one", [[1000, "line"]]]],
+    }
+    assert to_lean(word_source, "syllable")["lines"] == [
+        [1000, "line one", [[1000, "line", [[1000, "li"], [1500, "ne"]]]]],
+    ]
+
+
+def test_contract_lite_fields_and_null_omission():
+    assert to_lean(_line_payload_source(), "line", lite=True) == {
+        "v": 2,
+        "tier": "line",
+        "lines": [[1000, "line one"], [5000, "line two"]],
+    }
+    # "v" and "tier" always survive a fields filter.
+    assert to_lean(_line_payload_source(), "line", fields={"src"}) == {
+        "v": 2, "src": "fake", "tier": "line",
+    }
+    # Missing optional fields are omitted, never sent as null.
+    bare = {"status": "success", "data": {"timed_lyrics": [
+        {"text": "only line", "start_time": 0, "end_time": 1000},
+    ]}}
+    assert to_lean(bare, "line") == {"v": 2, "tier": "line", "lines": [[0, "only line"]]}
+
+
+class _RaisingFetcher:
+    async def fetch(self, *args, **kwargs):
+        raise RuntimeError("provider exploded")
+
+
+def test_contract_error_envelopes(client, registry):
+    assert client.get("/v2/lyrics?artist=OnlyArtist").get_json() == {"err": "missing_artist_or_song"}
+    assert client.get("/v2/lyrics?artist=A&song=B&tier=karaoke").get_json() == {
+        "err": "bad_tier", "allowed": ["plain", "line", "word", "syllable"],
+    }
+
+    registry["fake"] = _FakeFetcher(None)
+    missing = client.get("/v2/lyrics?artist=ContractMissing&song=Nothing")
+    assert (missing.status_code, missing.get_json()) == (404, {"err": "not_found"})
+
+    registry["fake"] = _RaisingFetcher()
+    broken = client.get("/v2/lyrics?artist=ContractBroken&song=Errors")
+    assert (broken.status_code, broken.get_json()) == (503, {"err": "upstream_unavailable"})
+
+    artist, song = "ContractPlain", "OnlyPlain"
+    save_raw(make_lyrics_cache_key(artist, song), {"status": "success", "data": {
+        "source": "fake", "artist": artist, "title": song, "lyrics": "a\nb",
+    }}, "plain")
+    strict = client.get(f"/v2/lyrics?artist={artist}&song={song}&tier=line&allow_lower=false")
+    assert (strict.status_code, strict.get_json()) == (404, {"err": "tier_unavailable", "tier": "plain"})
+
+
+def test_contract_etag_and_cache_headers(client, registry):
+    artist, song = "ContractEtag", "Headers"
+    save_raw(make_lyrics_cache_key(artist, song), _line_payload_source(), "line")
+    url = f"/v2/lyrics?artist={artist}&song={song}"
+
+    first = client.get(url)
+    assert re.fullmatch(r'"[0-9a-f]{32}"', first.headers["ETag"])
+    assert first.headers["X-Cache"] == "MISS"
+    assert first.mimetype == "application/json"
+
+    second = client.get(url)
+    assert second.headers["X-Cache"] == "HIT"
+    assert second.headers["ETag"] == first.headers["ETag"]
+
+    not_modified = client.get(url, headers={"If-None-Match": first.headers["ETag"]})
+    assert not_modified.status_code == 304
+    assert not_modified.data == b""
+
+
+def test_contract_translation_fields(client, registry, monkeypatch):
+    import src.routes.v2 as v2_routes
+
+    artist, song = "ContractTr", "Translated"
+    save_raw(make_lyrics_cache_key(artist, song), _line_payload_source(), "line")
+
+    monkeypatch.setattr(v2_routes, "get_key_manager", lambda: MagicMock(has_keys=False))
+    unavailable = client.get(f"/v2/lyrics?artist={artist}&song={song}&translate=true")
+    assert (unavailable.status_code, unavailable.get_json()) == (503, {"err": "ai_unavailable"})
+
+    monkeypatch.setattr(v2_routes, "get_key_manager", lambda: MagicMock(has_keys=True))
+    monkeypatch.setattr(
+        v2_routes, "_run_ai_lines",
+        lambda data, translate, romanize, language: (["uno", "dos"], ["ro one", "ro two"]),
+    )
+    payload = client.get(
+        f"/v2/lyrics?artist={artist}&song={song}&translate=true&romanize=true&lang=es"
+    ).get_json()
+    # "tr" and "rom" are lists aligned one-to-one with "lines".
+    assert payload["tr"] == ["uno", "dos"]
+    assert payload["rom"] == ["ro one", "ro two"]
+    assert len(payload["tr"]) == len(payload["lines"])
 
 
 # ── Singleflight ─────────────────────────────────────────────────────────────
