@@ -1,6 +1,6 @@
 # v2 Stable Release Plan
 
-**Status:** Draft for review · **Target:** `v2.0.0` · **Based on:** `v2-beta-rollout` (`2.0.0b1`, 2026-11-04)
+**Status:** Approved, tracked in milestone [`v2.0.0`](https://github.com/mekongmoon/Lyrica/milestone/1) · **Target:** `v2.0.0` · **Based on:** `v2-beta-rollout` (`2.0.0b1`, 2026-11-04)
 
 This page decides which v2-beta features ship in the stable `v2.0.0` release, what has to happen first, and how the work is tracked.
 
@@ -61,17 +61,17 @@ Each blocker becomes a GitHub issue in the `v2.0.0` milestone. `v2.0.0` ships wh
 
 ### Engineering
 
-1. **Port v2-beta onto current `main`.** Move the beta's `src/core/` modules, `/v2/*` routes (as a new `src/routes/v2.py` blueprint), cache, fetch-controller and lrclib changes onto `main`. Keep every fix already on `main`. Bring over `Test/test_v2_core.py` and get it passing in CI. Update `Test/test_route_map.py` with the new routes.
-2. **Verify word and syllable tiers end to end.** With the fixed lrcmux and Apple Music, confirm `/v2/lyrics?tier=word` returns word timing for songs that have it, and `allow_lower=false` only returns `tier_unavailable` when no provider has the tier. Add a live integration test for word tier (lrcmux) and, when a token is available, for syllable tier (Apple Music).
-3. **Freeze and document the v2 response contract.** Final field names, nesting for word/syllable lines, error envelope (`{"err": ...}`), status codes and `ETag` rules. Add contract tests that fail on any change. After `v2.0.0`, breaking changes require `v3`.
-4. **Settle the `/v2` namespace and what `/v2/health` exposes.** The admin endpoints `/v2/proxy/*` already use the `/v2` prefix, and `/v2/health` publicly reports provider breaker state and quotas. Decide whether to move the proxy endpoints (for example to `/admin/proxy/*`, keeping aliases) and whether `/v2/health` should be trimmed or admin-key protected.
-5. **Decide YouTube Music's status for v2.0.0.** Either keep it enabled (as on `main`, with updated ytmusicapi) and verify it, or ship disabled as in the beta and track the rebuild for 2.x.
-6. **Decide the compression default.** The beta makes compression opt-in, which also changes v1 responses. Pick one default for both versions and document it.
-7. **Benchmark under production settings.** The beta's HTTP numbers come from Flask's development server. Measure `/v2/lyrics` and `/lyrics/` under Gunicorn `gthread` with Redis, using `gunicorn_production.py`, and record the results in the release notes.
+1. **Port v2-beta onto current `main`.** ([#12](https://github.com/mekongmoon/Lyrica/issues/12)) Move the beta's `src/core/` modules, `/v2/*` routes (as a new `src/routes/v2.py` blueprint), cache, fetch-controller and lrclib changes onto `main`. Keep every fix already on `main`. Bring over `Test/test_v2_core.py` and get it passing in CI. Update `Test/test_route_map.py` with the new routes.
+2. **Verify word and syllable tiers end to end.** ([#13](https://github.com/mekongmoon/Lyrica/issues/13)) With the fixed lrcmux and Apple Music, confirm `/v2/lyrics?tier=word` returns word timing for songs that have it, and `allow_lower=false` only returns `tier_unavailable` when no provider has the tier. Add a live integration test for word tier (lrcmux) and, when a token is available, for syllable tier (Apple Music).
+3. **Freeze and document the v2 response contract.** ([#14](https://github.com/mekongmoon/Lyrica/issues/14)) Final field names, nesting for word/syllable lines, error envelope (`{"err": ...}`), status codes and `ETag` rules. Add contract tests that fail on any change. After `v2.0.0`, breaking changes require `v3`.
+4. **Settle the `/v2` namespace and what `/v2/health` exposes.** ([#15](https://github.com/mekongmoon/Lyrica/issues/15)) The admin endpoints `/v2/proxy/*` already use the `/v2` prefix, and `/v2/health` publicly reports provider breaker state and quotas. Decide whether to move the proxy endpoints (for example to `/admin/proxy/*`, keeping aliases) and whether `/v2/health` should be trimmed or admin-key protected.
+5. **Decide YouTube Music's status for v2.0.0.** ([#16](https://github.com/mekongmoon/Lyrica/issues/16)) Either keep it enabled (as on `main`, with updated ytmusicapi) and verify it, or ship disabled as in the beta and track the rebuild for 2.x.
+6. **Decide the compression default.** ([#17](https://github.com/mekongmoon/Lyrica/issues/17)) The beta makes compression opt-in, which also changes v1 responses. Pick one default for both versions and document it.
+7. **Benchmark under production settings.** ([#18](https://github.com/mekongmoon/Lyrica/issues/18)) The beta's HTTP numbers come from Flask's development server. Measure `/v2/lyrics` and `/lyrics/` under Gunicorn `gthread` with Redis, using `gunicorn_production.py`, and record the results in the release notes.
 
 ### Release
 
-8. **Release mechanics.** Set the version to `2.0.0` (`pyproject.toml`, `src/__init__.py`), write release notes and an upgrade guide (cache `v6` rebuild, new env vars), publish the Docker image with `latest` moved, and state the v1 support policy (for example, v1 kept for at least one more major version).
+8. **Release mechanics.** ([#19](https://github.com/mekongmoon/Lyrica/issues/19)) Set the version to `2.0.0` (`pyproject.toml`, `src/__init__.py`), write release notes and an upgrade guide (cache `v6` rebuild, new env vars), publish the Docker image with `latest` moved, and state the v1 support policy (for example, v1 kept for at least one more major version).
 
 ---
 
@@ -87,8 +87,17 @@ Each blocker becomes a GitHub issue in the `v2.0.0` milestone. `v2.0.0` ships wh
 
 ## 5. Tracking
 
-After this plan is merged:
+Milestone: [`v2.0.0`](https://github.com/mekongmoon/Lyrica/milestone/1). Labels: `release-blocker` on every blocker, `decision` on blockers 4–6.
 
-- Create the GitHub milestone **`v2.0.0`**.
-- Open one issue per blocker above, labelled `release-blocker` (and `decision` for blockers 4–6), each with its acceptance criteria.
-- Link the issues from this page.
+| # | Blocker | Issue | Depends on |
+|---|---|---|---|
+| 1 | Port v2-beta onto current `main` | [#12](https://github.com/mekongmoon/Lyrica/issues/12) | — |
+| 2 | Verify word and syllable tiers end to end | [#13](https://github.com/mekongmoon/Lyrica/issues/13) | #12 |
+| 3 | Freeze and document the v2 response contract | [#14](https://github.com/mekongmoon/Lyrica/issues/14) | #12 |
+| 4 | Decide the `/v2` namespace and `/v2/health` exposure | [#15](https://github.com/mekongmoon/Lyrica/issues/15) | — |
+| 5 | Decide YouTube Music's status | [#16](https://github.com/mekongmoon/Lyrica/issues/16) | — |
+| 6 | Decide the compression default | [#17](https://github.com/mekongmoon/Lyrica/issues/17) | — |
+| 7 | Benchmark under production Gunicorn + Redis | [#18](https://github.com/mekongmoon/Lyrica/issues/18) | #12 |
+| 8 | Release mechanics | [#19](https://github.com/mekongmoon/Lyrica/issues/19) | all others |
+
+The decision issues (#15–#17) can be settled now, in parallel with the port (#12).
