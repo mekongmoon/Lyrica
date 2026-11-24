@@ -2,6 +2,10 @@
 
 Translation and romanization are not separate endpoints: they are steps of
 the /lyrics/ request (translate=true / romanize=true), so they live here.
+
+Lyrics come from the shared raw cache entry for the song (see
+src/routes/_lyrics_pipeline.py); the requested sync tier is derived from it
+and the fully rendered response is cached as a view with an ETag.
 """
 
 import asyncio
@@ -10,14 +14,15 @@ from datetime import datetime, timezone
 from flask import Blueprint, jsonify, request
 
 from src.async_bridge import run_async
-from src.cache import load_from_cache, make_cache_key, save_to_cache
+from src.cache import load_view, make_view_cache_key, save_view
 from src.config import GROQ_MODEL
-from src.fetch_controller import fetch_lyrics_controller
+from src.core.tiers import derive_view, requested_tier
 from src.groq_key_manager import get_key_manager
 from src.groq_processor import process_lyrics
 from src.logger import get_logger
 from src.metadata_extractor import enhance_lyrics_with_metadata
 from src.routes._helpers import _IS_PRODUCTION, _MAX_TEXT_LEN, _error_details, _sanitize_text
+from src.routes._lyrics_pipeline import _cached_response, _get_raw_lyrics, _serialize_json
 from src.routes.trending import trending_engine
 from src.sentiment_analyzer import analyze_sentiment, analyze_word_frequency, extract_lyrics_text
 from src.translation_cache import (
@@ -130,35 +135,41 @@ def lyrics():
     except Exception as e:
         logger.warning(f"Failed to record user query: {str(e)}")
 
-    # 1. Check Cache First
-    cache_key = make_cache_key(
-        artist, song, timestamps, sequence, fast_mode,
-        analyze_mood, include_metadata,
-        translate=do_translate, romanize=do_romanize, language=target_language,
+    # 1. Rendered-view cache. The body is stored pre-serialized so a hit
+    #    skips tier derivation and JSON encoding entirely.
+    view_key = make_view_cache_key(
+        artist,
+        song,
+        timestamps=timestamps,
+        sequence=sequence,
+        mood=analyze_mood,
+        metadata=include_metadata,
+        translate=do_translate,
+        romanize=do_romanize,
+        language=target_language,
         word_level=word_level,
         syllabus=syllabus,
+        pass_param=pass_param,
     )
-    cached = load_from_cache(cache_key)
+    cached_view = load_view(view_key)
+    if cached_view:
+        _, cached_body = cached_view
+        logger.info("View cache hit for %s - %s", artist, song)
+        return _cached_response(cached_body)
 
-    if cached:
-        logger.info(f"Cache hit for {artist} - {song}")
-        return jsonify(cached)
-
-    # 2. Fetch Fresh Data
+    # 2. Raw lyrics entry, shared by every flag combination, with
+    #    singleflight coalescing and a short negative cache.
     try:
-        result = run_async(
-            fetch_lyrics_controller(
-                artist,
-                song,
-                timestamps=timestamps,
-                pass_param=pass_param,
-                sequence=sequence,
-                fast_mode=fast_mode,
-                fast_timeout=_fast_timeout,
-                word_level=word_level,
-                syllabus=syllabus,
-            ),
-            timeout=60,
+        raw_result, _raw_tier, _raw_key, _raw_meta = _get_raw_lyrics(
+            artist,
+            song,
+            timestamps=timestamps,
+            pass_param=pass_param,
+            sequence=sequence,
+            fast_mode=fast_mode,
+            fast_timeout=_fast_timeout,
+            word_level=word_level,
+            syllabus=syllabus,
         )
     except TimeoutError:
         logger.error(f"Timeout fetching lyrics for {artist} - {song}")
@@ -187,18 +198,31 @@ def lyrics():
             500,
         )
 
-    if not isinstance(result, dict):
-        logger.error(f"Invalid result type from fetch_lyrics_controller: {type(result)}")
-        return (
-            jsonify({
-                "status": "error",
-                "error": {
-                    "message": "Invalid response from lyrics fetcher",
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                },
-            }),
-            500,
-        )
+    if raw_result is None:
+        if _raw_meta.get("outcome") == "invalid":
+            return (
+                jsonify({
+                    "status": "error",
+                    "error": {
+                        "message": "Invalid response from lyrics fetcher",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    },
+                }),
+                500,
+            )
+        logger.info("No lyrics found for %s - %s", artist, song)
+        return jsonify({
+            "status": "error",
+            "error": {
+                "message": "No lyrics found",
+                "details": "All enabled fetchers returned no result",
+            },
+        })
+
+    result = derive_view(
+        raw_result,
+        requested_tier(timestamps, word_level, syllabus),
+    )
 
     # 3. Analyze mood if requested
     if analyze_mood and result.get("status") == "success":
@@ -336,18 +360,14 @@ def lyrics():
                     if not _IS_PRODUCTION:
                         result["translation_error"] += f": {e}"
 
-    # 6. Cache if successful
+    # 6. Cache the rendered view (including mood/metadata/translation).
     if result.get("status") == "success":
-        data = result.get("data", {})
-        if data.get("lyrics") or data.get("plain_lyrics") or data.get("lyrics_text"):
-            try:
-                save_to_cache(cache_key, result)
-                logger.info(f"Result cached for {artist} - {song}")
-            except Exception as e:
-                logger.warning(f"Cache save failed: {str(e)}")
-        else:
-            logger.warning(
-                f"Fetch successful but no lyrics content found for {artist} - {song}. Skipping cache."
-            )
+        try:
+            body = _serialize_json(result)
+            save_view(view_key, result, body)
+            logger.info(f"Result cached for {artist} - {song}")
+            return _cached_response(body, cache_label="MISS")
+        except Exception as e:
+            logger.warning(f"Cache save failed: {str(e)}")
 
     return jsonify(result)
