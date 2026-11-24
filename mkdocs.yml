@@ -79,5 +79,6 @@ nav:
   - Development:
       - Testing & Benchmarking: development/testing.md
       - Contributing: development/contributing.md
+      - v2 Release Plan: development/v2-release-plan.md
   - Troubleshooting:
       - FAQ & Diagnostics: troubleshooting/faq.md
