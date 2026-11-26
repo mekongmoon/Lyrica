@@ -5,7 +5,7 @@
 # ============================================================
 
 # ── Web framework ────────────────────────────────────────────
-flask[async]==3.1.3          # async view support (required for async def routes)
+flask==3.1.3                 # views are sync; async code runs via src/async_bridge.py
 Werkzeug==3.1.9              # Flask 3.1.x's WSGI toolkit
 flask-cors==6.0.5            # CORS headers
 
