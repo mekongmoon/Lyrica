@@ -277,6 +277,13 @@ Contributions are warmly welcomed! Please read our [Contributing Guide](docs/dev
                 </a>
             </td>
             <td align="center">
+                <a href="https://github.com/Daytonrad">
+                    <img src="https://avatars.githubusercontent.com/u/106027925?v=4" width="100;" alt="Daytonrad"/>
+                    <br />
+                    <sub><b>Dayton</b></sub>
+                </a>
+            </td>
+            <td align="center">
                 <a href="https://github.com/rombat">
                     <img src="https://avatars.githubusercontent.com/u/9024503?v=4" width="100;" alt="rombat"/>
                     <br />
