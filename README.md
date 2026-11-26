@@ -307,4 +307,3 @@ Contributions are warmly welcomed! Please read our [Contributing Guide](docs/dev
 ## 📝 License
 
 Licensed under the [MIT License](LICENSE) © 2026 Lyrica Contributors.
-Made with ❤️ by [Shaurya Singh (Wilooper)](https://github.com/Wilooper) and the open-source community.
