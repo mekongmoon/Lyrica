@@ -15,6 +15,7 @@ import httpx
 from src.config import LRCLIB_API_URL
 from src.core.verifier import score_candidate
 from src.logger import get_logger
+
 from .base_fetcher import BaseFetcher, get_http_client, parse_lrc
 
 logger = get_logger("lrclib_fetcher")
@@ -48,7 +49,7 @@ class LRCLIBFetcher(BaseFetcher):
         """GET /api/get with one cheap retry for flaky keep-alive connections."""
         for attempt in range(2):
             try:
-                response = await client.get(LRCLIB_API_URL, params=params)
+                response = await client.get(LRCLIB_API_URL, params=params, headers={"User-Agent": _UA})
                 if response.status_code == 200:
                     data = response.json()
                     return data if isinstance(data, dict) else None
@@ -68,6 +69,7 @@ class LRCLIBFetcher(BaseFetcher):
             response = await client.get(
                 _LRCLIB_SEARCH,
                 params={"track_name": song, "artist_name": artist},
+                headers={"User-Agent": _UA},
             )
             if response.status_code != 200:
                 logger.warning("LRCLIB search returned %s", response.status_code)

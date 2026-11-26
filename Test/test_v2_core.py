@@ -17,6 +17,7 @@ import threading
 import time
 from unittest.mock import AsyncMock, MagicMock
 
+import httpx
 import pytest
 
 import src.fetch_controller as fetch_controller
@@ -225,6 +226,23 @@ def test_parse_lrc_repeated_tags_do_not_leak_into_text():
         (10000, "Chorus line"),
         (80000, "Chorus line"),
     ]
+
+
+@pytest.mark.asyncio
+async def test_lrclib_identifies_requests_without_changing_shared_client(monkeypatch):
+    requests = []
+
+    def handle(request):
+        requests.append((request.url.path, request.headers["User-Agent"]))
+        return httpx.Response(404)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handle), headers={"User-Agent": "shared"}) as client:
+        monkeypatch.setattr("src.sources.lrclib_fetcher.get_http_client", lambda: client)
+        await LRCLIBFetcher().fetch("Artist", "Song")
+        assert client.headers["User-Agent"] == "shared"
+
+    assert [path for path, _ in requests] == ["/api/get", "/api/search"]
+    assert all(agent.startswith("Lyrica/") for _, agent in requests)
 
 
 def _lrclib_fetcher(data_by_artist):
