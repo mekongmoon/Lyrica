@@ -213,11 +213,19 @@ def test_lean_word_and_syllable_nesting():
 # ── LRC parser / LRCLIB fetcher ──────────────────────────────────────────────
 
 def test_parse_lrc_multiple_tags_offset_and_sorting():
+    # [offset:+500] makes lyrics appear 500 ms sooner (LRC convention).
     lrc = "[ar:Artist]\n[offset:500]\n[00:01.00][00:10.50]Chorus\n[00:05.2]Verse"
     parsed = parse_lrc(lrc)
-    assert [entry["start_time"] for entry in parsed] == [1500, 5700, 11000]
-    assert parsed[0]["end_time"] == 5700
-    assert parsed[-1]["end_time"] == 15000  # last line start + 4s
+    assert [entry["start_time"] for entry in parsed] == [500, 4700, 10000]
+    assert parsed[0]["end_time"] == 4700
+    assert parsed[-1]["end_time"] == 14000  # last line start + 4s
+
+
+def test_parse_lrc_negative_offset_delays_and_clamps_at_zero():
+    parsed = parse_lrc("[offset:-250]\n[00:01.00]Later")
+    assert parsed[0]["start_time"] == 1250
+    # A positive offset larger than the timestamp clamps at 0, never negative.
+    assert parse_lrc("[offset:+3000]\n[00:01.00]Early")[0]["start_time"] == 0
 
 
 def test_parse_lrc_repeated_tags_do_not_leak_into_text():

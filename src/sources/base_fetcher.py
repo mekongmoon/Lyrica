@@ -102,6 +102,10 @@ def parse_lrc(lrc_text: str, total_duration_ms: int | None = None) -> list:
     Handles multiple timestamps on one line (``[00:10.00][01:20.00] chorus``),
     metadata tags, and ``[offset:...]``. Output is sorted by start time so the
     verifier's monotonicity check is meaningful.
+
+    ``[offset:+N]`` makes lyrics appear N ms *sooner* (the LRC convention), so
+    the offset is subtracted from every timestamp; a negative offset delays
+    them.
     """
     if not lrc_text:
         return []
@@ -126,7 +130,7 @@ def parse_lrc(lrc_text: str, total_duration_ms: int | None = None) -> list:
             start_ms = _tag_to_ms(tag.group(1), tag.group(2), tag.group(3))
             if start_ms is None:
                 continue
-            start_ms = max(0, start_ms + offset_ms)
+            start_ms = max(0, start_ms - offset_ms)
             key = (start_ms, text)
             if key in seen:
                 continue
